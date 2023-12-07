@@ -126,10 +126,10 @@ public partial class PostFXStack
 		ApplySceneViewState();
 	}
 
-	public void Render(RenderGraphContext context, TextureHandle sourceId, TextureHandle edgeBreakupWarpId)
+	public void Render(RenderGraphContext context, TextureHandle sourceId, TextureHandle edgeBreakupWarpId, EdgeBreakupSettings edgeBreakupSettings)
 	{
 		buffer = context.cmd;
-		if (DoEdgeBreakup(sourceId, edgeBreakupWarpId))
+		if (DoEdgeBreakup(sourceId, edgeBreakupWarpId, edgeBreakupSettings))
 		{
 			if (DoBloom(edgeBreakupCompResultId))
 			{
@@ -158,9 +158,8 @@ public partial class PostFXStack
 		buffer.Clear();
 	}
 
-	bool DoEdgeBreakup(RenderTargetIdentifier sourceId, TextureHandle edgeBreakupWarpId)
+	bool DoEdgeBreakup(RenderTargetIdentifier sourceId, TextureHandle edgeBreakupWarpId, EdgeBreakupSettings edgeBreakup)
 	{
-		EdgeBreakupSettings edgeBreakup = settings.EdgeBreakup;
 		int width, height;
 		if (edgeBreakup.ignoreRenderScale)
 		{
@@ -173,7 +172,7 @@ public partial class PostFXStack
 			height = bufferSize.y;
 		}
 
-		if (edgeBreakup.distance <= 0.0f)
+		if (edgeBreakup.distance <= 0.0f && !edgeBreakup.debug)
 		{
 			return false;
 		}

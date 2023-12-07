@@ -47,21 +47,6 @@ public class PostFXSettings : ScriptableObject
 	};
 
 	public BloomSettings Bloom => bloom;
-	
-	[Serializable]
-	public struct EdgeBreakupSettings
-	{
-		public bool ignoreRenderScale;
-		public bool debug;
-
-		[Min(0f)]
-		public float distance;
-	}
-
-	[SerializeField]
-	EdgeBreakupSettings edgeBreakup = new();
-
-	public EdgeBreakupSettings EdgeBreakup => edgeBreakup;
 
 	[Serializable]
 	public struct ColorAdjustmentsSettings

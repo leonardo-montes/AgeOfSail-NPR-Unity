@@ -12,8 +12,15 @@ public class EdgeBreakupPass
 		new("EdgeBreakup")
 	};
 
+	static readonly int edgeBreakupTextureId = Shader.PropertyToID("_EdgeBreakupWarpTexture");
+	static readonly int edgeBreakupTextureScaleId = Shader.PropertyToID("_EdgeBreakupWarpTextureScale");
+	static readonly int edgeBreakupSkewId = Shader.PropertyToID("_EdgeBreakupSkew");
+
 	RendererListHandle list;
 	TextureHandle edgeBreakupColor, edgeBreakupDepth;
+	Texture2D edgeBreakupWarpTexture;
+	float edgeBreakupWarpTextureScale;
+	float skew;
 
 	void Render(RenderGraphContext context)
 	{
@@ -22,6 +29,10 @@ public class EdgeBreakupPass
             RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
             edgeBreakupDepth,
             RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+
+		context.cmd.SetGlobalTexture(edgeBreakupTextureId, edgeBreakupWarpTexture);
+		context.cmd.SetGlobalFloat(edgeBreakupTextureScaleId, edgeBreakupWarpTextureScale);
+		context.cmd.SetGlobalFloat(edgeBreakupSkewId, skew);
 
 		context.cmd.DrawRendererList(list);
 		context.renderContext.ExecuteCommandBuffer(context.cmd);
@@ -34,7 +45,8 @@ public class EdgeBreakupPass
 		CullingResults cullingResults,
 		int renderingLayerMask,
 		bool opaque,
-		in CameraRendererTextures textures)
+		in CameraRendererTextures textures,
+		in EdgeBreakupSettings edgeBreakupSettings)
 	{
 		using RenderGraphBuilder builder = renderGraph.AddRenderPass(
 			sampler.name, out EdgeBreakupPass pass, sampler);
@@ -50,6 +62,9 @@ public class EdgeBreakupPass
 
         pass.edgeBreakupColor = builder.ReadWriteTexture(textures.edgeBreakupColor);
         pass.edgeBreakupDepth = builder.ReadWriteTexture(textures.edgeBreakupDepth);
+		pass.edgeBreakupWarpTexture = edgeBreakupSettings.warpTexture;
+		pass.edgeBreakupWarpTextureScale = edgeBreakupSettings.warpTextureScale;
+		pass.skew = edgeBreakupSettings.skew;
 		/*if (!opaque)
 		{
 			if (textures.edgeBreakupColor.IsValid())

@@ -23,6 +23,12 @@ Varyings EdgeBreakupPassVertex (Attributes input) {
 	return output;
 }
 
+TEXTURE2D(_EdgeBreakupWarpTexture);
+SAMPLER(sampler_EdgeBreakupWarpTexture);
+
+float _EdgeBreakupWarpTextureScale;
+float _EdgeBreakupSkew;
+
 float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 	UNITY_SETUP_INSTANCE_ID(input);
 	InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
@@ -32,9 +38,10 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 		clip(base.a - GetCutoff(config));
 	#endif
 
-    base.rgb = float3(0.5, 0.5, 0.0);
+	float4 warp = float4(0.5, 0.5, 0.0, 1.0);
+	warp.rg = SAMPLE_TEXTURE2D(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, input.baseUV * _EdgeBreakupWarpTextureScale).rg;
 
-	return float4(base.rgb, GetFinalAlpha(base.a));
+	return warp;
 }
 
 #endif

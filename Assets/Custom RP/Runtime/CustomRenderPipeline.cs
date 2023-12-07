@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
@@ -12,8 +13,8 @@ public partial class CustomRenderPipeline : RenderPipeline
 	readonly bool useLightsPerObject;
 
 	readonly ShadowSettings shadowSettings;
-
 	readonly PostFXSettings postFXSettings;
+	readonly EdgeBreakupSettings edgeBreakupSettings;
 
 	readonly int colorLUTResolution;
 
@@ -22,7 +23,7 @@ public partial class CustomRenderPipeline : RenderPipeline
 	public CustomRenderPipeline(
 		CameraBufferSettings cameraBufferSettings,
 		bool useSRPBatcher,
-		bool useLightsPerObject, ShadowSettings shadowSettings,
+		bool useLightsPerObject, ShadowSettings shadowSettings, EdgeBreakupSettings edgeBreakupSettings,
 		PostFXSettings postFXSettings, int colorLUTResolution,
 		Shader cameraRendererShader)
 	{
@@ -30,6 +31,7 @@ public partial class CustomRenderPipeline : RenderPipeline
 		this.cameraBufferSettings = cameraBufferSettings;
 		this.postFXSettings = postFXSettings;
 		this.shadowSettings = shadowSettings;
+		this.edgeBreakupSettings = edgeBreakupSettings;
 		this.useLightsPerObject = useLightsPerObject;
 		GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
 		GraphicsSettings.lightsUseLinearIntensity = true;
@@ -48,7 +50,7 @@ public partial class CustomRenderPipeline : RenderPipeline
 			renderer.Render(
 				renderGraph, context, cameras[i], cameraBufferSettings,
 				useLightsPerObject,
-				shadowSettings, postFXSettings, colorLUTResolution);
+				shadowSettings, postFXSettings, edgeBreakupSettings, colorLUTResolution);
 		}
 		renderGraph.EndFrame();
 	}

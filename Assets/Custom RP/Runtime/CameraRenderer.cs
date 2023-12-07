@@ -22,7 +22,7 @@ public class CameraRenderer
 		ScriptableRenderContext context, Camera camera,
 		CameraBufferSettings bufferSettings,
 		bool useLightsPerObject,
-		ShadowSettings shadowSettings, PostFXSettings postFXSettings,
+		ShadowSettings shadowSettings, PostFXSettings postFXSettings, EdgeBreakupSettings edgeBreakupSettings,
 		int colorLUTResolution)
 	{
 		ProfilingSampler cameraSampler;
@@ -125,7 +125,7 @@ public class CameraRenderer
 				renderGraph, useIntermediateBuffer, useColorTexture,
 				useDepthTexture, useHDR, bufferSize, camera);
 
-			EdgeBreakupPass.Record(renderGraph, camera, cullingResults, cameraSettings.renderingLayerMask, true, textures);
+			EdgeBreakupPass.Record(renderGraph, camera, cullingResults, cameraSettings.renderingLayerMask, true, textures, edgeBreakupSettings);
 
 			GeometryPass.Record(
 				renderGraph, camera, cullingResults,
@@ -149,7 +149,7 @@ public class CameraRenderer
 
 			if (postFXStack.IsActive)
 			{
-				PostFXPass.Record(renderGraph, postFXStack, textures);
+				PostFXPass.Record(renderGraph, postFXStack, textures, edgeBreakupSettings);
 			}
 			else if (useIntermediateBuffer)
 			{

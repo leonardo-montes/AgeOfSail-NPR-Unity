@@ -28,6 +28,9 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
 	[SerializeField]
 	PostFXSettings postFXSettings = default;
 
+	[SerializeField]
+	EdgeBreakupSettings edgeBreakup = default;
+
 	public enum ColorLUTResolution
 	{ _16 = 16, _32 = 32, _64 = 64 }
 
@@ -46,6 +49,6 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
 
 	protected override RenderPipeline CreatePipeline() =>
 		new CustomRenderPipeline(cameraBuffer, useSRPBatcher,
-			useLightsPerObject, shadows, postFXSettings,
+			useLightsPerObject, shadows, edgeBreakup, postFXSettings,
 			(int)colorLUTResolution, cameraRendererShader);
 }
