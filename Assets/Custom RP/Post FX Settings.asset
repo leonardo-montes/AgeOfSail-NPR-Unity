@@ -26,6 +26,7 @@ MonoBehaviour:
     scatter: 0.7
   edgeBreakup:
     ignoreRenderScale: 1
+    debug: 1
     distance: 64
   colorAdjustments:
     postExposure: 0

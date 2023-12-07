@@ -52,6 +52,7 @@ public class PostFXSettings : ScriptableObject
 	public struct EdgeBreakupSettings
 	{
 		public bool ignoreRenderScale;
+		public bool debug;
 
 		[Min(0f)]
 		public float distance;

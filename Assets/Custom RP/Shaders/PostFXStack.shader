@@ -204,5 +204,17 @@
 				#pragma fragment EdgeBreakupCompPassFragment
 			ENDHLSL
 		}
+		
+		Pass {
+			Name "Edge Breakup Debug"
+
+			Blend [_FinalSrcBlend] [_FinalDstBlend]
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment EdgeBreakupDebugPassFragment
+			ENDHLSL
+		}
 	}
 }

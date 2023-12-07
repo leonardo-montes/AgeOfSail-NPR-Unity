@@ -321,4 +321,8 @@ float4 EdgeBreakupCompPassFragment (Varyings input) : SV_TARGET {
 	return GetSource(input.screenUV + edgeBreakupWarp);
 }
 
+float4 EdgeBreakupDebugPassFragment (Varyings input) : SV_TARGET {
+	return float4(GetSource2(input.screenUV).xy, 0.0, 1.0);
+}
+
 #endif

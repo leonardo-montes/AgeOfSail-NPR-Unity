@@ -24,7 +24,8 @@ public partial class PostFXStack
 		FinalRescale,
 		FXAA,
 		FXAAWithLuma,
-		EdgeBreakupComp
+		EdgeBreakupComp,
+		EdgeBreakupDebug
 	}
 
 	const string
@@ -185,7 +186,7 @@ public partial class PostFXStack
 		RenderTextureFormat format = useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 		buffer.GetTemporaryRT(edgeBreakupCompResultId, bufferSize.x, bufferSize.y, 0, FilterMode.Bilinear, format);
 
-		Draw(sourceId, edgeBreakupCompResultId, Pass.EdgeBreakupComp);
+		Draw(sourceId, edgeBreakupCompResultId, edgeBreakup.debug ? Pass.EdgeBreakupDebug : Pass.EdgeBreakupComp);
 
 		buffer.EndSample("Edge Breakup Comp");
 		return true;
