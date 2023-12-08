@@ -5,10 +5,7 @@
 // Link: https://www.sciencedirect.com/science/article/pii/S2590148619300123#eq0002
 // (alt) https://storage.googleapis.com/pub-tools-public-publication-data/pdf/391e12ba29e5430c9016a1c66846a3dbf6438bb8.pdf
 
-// TODO: Add '3.2. Approximate smooth UV gradients' (Eq.9-Eq.10)
-// TODO: Add '3.3. Compensating for radial angle' (Eq.11-Eq.13) [for VR use only]
 // TODO: Add '3.5. Orienting texture to indicate contour'
-// TODO: Add '4.2. Animated line boil'
 // TODO: Add '4.3. Compensating for camera roll'
 
 void GetUVGradientFromDerivatives (float2 uv, out float2 gradU, out float2 gradV)

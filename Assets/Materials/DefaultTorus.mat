@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _RECEIVE_SHADOWS
+  - _USE_ANIMATED_LINE_BOIL
   - _USE_SMOOTH_UV_GRADIENT
   m_InvalidKeywords:
   - _SHADOWS_ON
@@ -81,6 +82,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AnimatedLineBoilFramerate: 3
     - _BumpScale: 1
     - _Clipping: 0
     - _CompensateDistance: 0
@@ -113,6 +115,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
+    - _UseAnimatedLineBoil: 1
     - _UseSkewedMetaTexture: 1
     - _UseSmoothUVGradient: 1
     - _ZWrite: 1
@@ -120,5 +123,5 @@ Material:
     - _BaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Test: {r: 0.1, g: 0.1, b: 0.5, a: 0.5}
+    - _Test: {r: 0.001, g: 0.001, b: 0.005, a: 0.002}
   m_BuildTextureStacks: []

@@ -47,9 +47,9 @@ MonoBehaviour:
   edgeBreakup:
     warpTexture: {fileID: 2800000, guid: 9c7cfe9bf30aafb4ba39183305345112, type: 3}
     ignoreRenderScale: 0
-    debug: 1
+    debug: 0
     distance: 10
-    warpTextureScale: 1
+    warpTextureScale: 128
     skew: 4
   colorLUTResolution: 32
   cameraRendererShader: {fileID: 4800000, guid: 8ddf7a135e9224bf68caaacdb35c85f0, type: 3}

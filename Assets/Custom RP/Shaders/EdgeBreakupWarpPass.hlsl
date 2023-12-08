@@ -88,6 +88,8 @@ SAMPLER(sampler_EdgeBreakupWarpTexture);
 
 float _EdgeBreakupWarpTextureScale;
 float _EdgeBreakupSkew;
+float4 _EdgeBreakupTime;
+float _AnimatedLineBoilFramerate;
 
 float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 	UNITY_SETUP_INSTANCE_ID(input);
@@ -99,13 +101,18 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 	#endif
 
 	float4 warp = float4(0.5, 0.5, 0.0, 1.0);
-	//warp.rg = SAMPLE_TEXTURE2D(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, input.baseUV * _EdgeBreakupWarpTextureScale).rg;.
+
+	float2 uv = input.baseUV;
+
+	#if defined(_USE_ANIMATED_LINE_BOIL)
+		uv += _EdgeBreakupTime[_AnimatedLineBoilFramerate];
+	#endif
 
 	float2 gradU, gradV;
 	#if defined(_USE_SMOOTH_UV_GRADIENT)
-		GetApproximateSmoothUVGradient(input.baseUV, input.uvGradWS, input.tangentVS, input.binormalVS, gradU, gradV);
+		GetApproximateSmoothUVGradient(uv, input.uvGradWS, input.tangentVS, input.binormalVS, gradU, gradV);
 	#else
-		GetUVGradientFromDerivatives(input.baseUV, gradU, gradV);
+		GetUVGradientFromDerivatives(uv, gradU, gradV);
 	#endif
 
 	float intensity = 1.0;
@@ -120,9 +127,9 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 
 	// MetaTexture sampling
 	#if defined(_COMPENSATE_SKEW)
-		warp = SampleMetaTextureSkewed(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, input.baseUV, gradU, gradV, a, _EdgeBreakupWarpTextureScale, _EdgeBreakupSkew);
+		warp = SampleMetaTextureSkewed(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, uv, gradU, gradV, a, _EdgeBreakupWarpTextureScale, _EdgeBreakupSkew);
 	#else
-		warp = SampleMetaTexture(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, input.baseUV, gradU, gradV, a, _EdgeBreakupWarpTextureScale);
+		warp = SampleMetaTexture(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, uv, gradU, gradV, a, _EdgeBreakupWarpTextureScale);
 	#endif
 
     // '4.4. Compensating for distance'
