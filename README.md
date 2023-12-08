@@ -4,21 +4,22 @@ Unity implementation of the paper _[Real-time non-photorealistic animation for i
 
 Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Project](https://bitbucket.org/catlikecoding-projects/custom-srp-project/src/master/) as a base for the Rendering Pipeline.
 
-Implemented (based on the Paper):
-- 3.1. Texture scales and blend coefficients
-- 3.4. Compensating for skew
-- 3.6. Compensating for contrast reduction
-- 4.1. Edge inflation
-- 4.4. Compensating for distance
-- Warp Pass
-
-TODO (based on the Paper):
-- 3.2. Approximate smooth UV gradients
-- 3.3. Compensating for radial angle
-- 3.5. Orienting texture to indicate contour
-- 4.2. Animated line boil
-- 4.3. Compensating for camera roll
-- 5.1. Shadow shapes, inner glow, and indication
-- 5.2. Color control
-- Shadow Pass
-- Blur Pass
+**Implementation _(based on the Paper)_:**
+- 3. MetaTexture
+    - [x] 3.1. Texture scales and blend coefficients
+    - [ ] 3.2. Approximate smooth UV gradients
+    - [ ] 3.3. Compensating for radial angle
+    - [x] 3.4. Compensating for skew
+    - [ ] 3.5. Orienting texture to indicate contour
+    - [x] 3.6. Compensating for contrast reduction
+- 4. Edge Breakup
+    - [x] 4.1. Edge inflation
+    - [ ] 4.2. Animated line boil
+    - [ ] 4.3. Compensating for camera roll
+    - [x] 4.4. Compensating for distance
+- 5. The Rendering Pipeline
+    - [ ] 5.1. Shadow shapes, inner glow, and indication
+    - [ ] 5.2. Color control
+    - [x] Warp Pass
+    - [ ] Shadow Pass
+    - [ ] Blur Pass
