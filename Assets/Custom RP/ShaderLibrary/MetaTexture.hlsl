@@ -20,6 +20,31 @@ void GetUVGradientFromDerivatives (float2 uv, out float2 gradU, out float2 gradV
     gradV = float2(dx.y, dy.y);
 }
 
+// 3.2. Approximate smooth UV gradients
+void GetApproximateSmoothUVGradient (float2 uv, float4 UVGradWS, float3 tangentVS, float3 binormalVS, out float2 gradU, out float2 gradV)
+{
+    // Tₛ = screen-space projections of the unit tangent
+    float3 tangentSS = tangentVS;
+
+    // Bₛ = screen-space projections of the unit binormal
+    float3 binormalSS = binormalVS;
+
+    // ∇ᵥᵥu = world-space UV gradients
+    float2 gradUWS = UVGradWS.xy;
+
+    // ∇ᵥᵥv = world-space UV gradients
+    float2 gradVWS = UVGradWS.zw;
+
+    // Eq.9
+    // ∇ₛu = |∇ᵥᵥu|Tₛ/|Tₛ|²
+    // ∇ₛv = |∇ᵥᵥv|Bₛ/|Bₛ|²
+    gradV = length(gradVWS) * tangentSS.xy / length(tangentSS) * length(tangentSS);
+
+    // Eq.10
+    // ∇ₛv = |∇ᵥᵥv|Bₛ/|Bₛ|²
+    gradU = length(gradUWS) * binormalSS.xy / length(binormalSS) * length(binormalSS);
+}
+
 float CubicBlend (float x)
 {
     // β(x) = −2x³ + 3x²
@@ -129,10 +154,10 @@ float4 SampleMetaTexture(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv, float
     // float2 blend = float2(CubicBlend(frac(E.x)), CubicBlend(frac(E.y)));
     float2 blend = CubicBlend(frac(E));
 
-    float4 tex0 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv0); // T(U₀)
-    float4 tex1 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv1); // T(U₁)
-    float4 tex2 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv2); // T(U₂)
-    float4 tex3 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv3); // T(U₃)
+    float4 tex0 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv0, 0); // T(U₀)
+    float4 tex1 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv1, 0); // T(U₁)
+    float4 tex2 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv2, 0); // T(U₂)
+    float4 tex3 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv3, 0); // T(U₃)
 
     // Eq.8
     // M(U) = (1 − Bᵥ)[(1 − Bᵤ)T(U₀) + BᵤT(U₂)] +
@@ -242,14 +267,14 @@ float4 SampleMetaTextureSkewed(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv,
     // float2 blend = float2(CubicBlend(frac(E.x)), CubicBlend(frac(E.y)));
     float2 blend = CubicBlend(frac(E));
 
-    float4 tex00 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv00); // T(U′₀)
-    float4 tex01 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv01); // T(U′₁)
-    float4 tex02 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv02); // T(U′₂)
-    float4 tex03 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv03); // T(U′₃)
-    float4 tex10 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv10); // T(U′′₀)
-    float4 tex11 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv11); // T(U′′₁)
-    float4 tex12 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv12); // T(U′′₂)
-    float4 tex13 = SAMPLE_TEXTURE2D(_Tex, sampler_Tex, uv13); // T(U′′₃)
+    float4 tex00 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv00, 0); // T(U′₀)
+    float4 tex01 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv01, 0); // T(U′₁)
+    float4 tex02 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv02, 0); // T(U′₂)
+    float4 tex03 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv03, 0); // T(U′₃)
+    float4 tex10 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv10, 0); // T(U′′₀)
+    float4 tex11 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv11, 0); // T(U′′₁)
+    float4 tex12 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv12, 0); // T(U′′₂)
+    float4 tex13 = SAMPLE_TEXTURE2D_LOD(_Tex, sampler_Tex, uv13, 0); // T(U′′₃)
 
     // Eq.23
     // M(U) = (1 − Bᵥᵥ) { (1 − Bᵥ) [ (1 − Bᵤ)T(U′₀)  + BuT(U′₂)  ]   +

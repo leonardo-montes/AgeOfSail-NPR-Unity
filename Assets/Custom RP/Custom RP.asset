@@ -45,11 +45,11 @@ MonoBehaviour:
       filter: 2
   postFXSettings: {fileID: 11400000, guid: cead52c04f20ffa48a22b0f69013e922, type: 2}
   edgeBreakup:
-    warpTexture: {fileID: 2800000, guid: d24809db9e8e8e44f85aacd7ce79be40, type: 3}
+    warpTexture: {fileID: 2800000, guid: 9c7cfe9bf30aafb4ba39183305345112, type: 3}
     ignoreRenderScale: 0
     debug: 0
     distance: 10
-    warpTextureScale: 64
+    warpTextureScale: 1
     skew: 4
   colorLUTResolution: 32
   cameraRendererShader: {fileID: 4800000, guid: 8ddf7a135e9224bf68caaacdb35c85f0, type: 3}
