@@ -38,9 +38,10 @@
 		[HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
 		[HideInInspector] _Color("Color for Lightmap", Color) = (0.5, 0.5, 0.5, 1.0)
 		
-		[Toggle(_COMPENSATE_DISTANCE)] _CompensateDistance ("Edge breakup: compensate distance", Float) = 0
 		[Toggle(_USE_SMOOTH_UV_GRADIENT)] _UseSmoothUVGradient ("Edge breakup: use smooth UV gradient", Float) = 0
-		[Toggle(_USE_SKEWED_META_TEXTURE)] _UseSkewedMetaTexture ("Edge breakup: use skewed MetaTexture", Float) = 0
+		[Toggle(_COMPENSATE_RADIAL_ANGLE)] _CompensateRadialAngle ("Edge breakup: compensate for radial angle", Float) = 0
+		[Toggle(_COMPENSATE_SKEW)] _CompensateSkew ("Edge breakup: compensate for skew", Float) = 0
+		[Toggle(_COMPENSATE_DISTANCE)] _CompensateDistance ("Edge breakup: compensate for distance", Float) = 0
 		_Test("test", Vector) = (0.5, 0.5, 0.5, 1.0)
 	}
 	
@@ -120,9 +121,10 @@
 
 			HLSLPROGRAM
 			#pragma target 4.5
-			#pragma shader_feature _COMPENSATE_DISTANCE
 			#pragma shader_feature _USE_SMOOTH_UV_GRADIENT
-			#pragma shader_feature _USE_SKEWED_META_TEXTURE
+			#pragma shader_feature _COMPENSATE_RADIAL_ANGLE
+			#pragma shader_feature _COMPENSATE_SKEW
+			#pragma shader_feature _COMPENSATE_DISTANCE
 			#pragma multi_compile_instancing
 			#pragma vertex EdgeBreakupPassVertex
 			#pragma fragment EdgeBreakupPassFragment

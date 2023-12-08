@@ -55,11 +55,26 @@ float2 CubicBlend (float2 x)
     return float2(-2 * x.x * x.x * x.x + 3 * x.x * x.x, -2 * x.y * x.y * x.y + 3 * x.y * x.y);
 }
 
+// Eq.25
+// k(t) = 2t² − 2t + 1
 float K (float t)
 {
-    // Eq.25
-    // k(t) = 2t² − 2t + 1
     return 2 * t * t - 2 * t + 1;
+}
+
+// '3.3. Compensating for radial angle': Obtain the radial angle compensation coefficient
+float GetRadialAngleCompensationCoefficient(float2 S, float4x4 P)
+{
+    // Eq.12
+    //      /  Sₓ     Sᵧ  \
+    // Q = <  ---- , ----  >
+    //      \ P₀,₀   P₁,₁ /
+    float2 Q = float2(S.x / P[0][0], S.y / P[1][1]);
+
+    // Eq.13
+    // α = |Q|² + 1
+    float lenQ = length(Q);
+    return lenQ * lenQ + 1.0;
 }
 
 // Implementing '3.6. Compensating for contrast reduction'
@@ -115,13 +130,20 @@ float CompensateDistance(float intensity, float d)
 }
 
 // Implementing '3.1. Texture scales and blend coefficients'
-float4 SampleMetaTexture(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv, float2 gradU, float2 gradV, float w)
+float4 SampleMetaTexture(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv, float2 gradU, float2 gradV, float a, float w)
 {
     // Eq.1
     //      /   1       1   \
     // S = <  ----- , -----  >
     //      \ w|∇u|   w|∇v| /
-    float2 S = float2(1.0 / (w * length(gradU)), 1.0 / (w * length(gradV)));
+    //
+    //float2 S = float2(1.0 / (w * length(gradU)), 1.0 / (w * length(gradV)));
+
+    // Eq.11 (Replaces Eq.1)
+    //      /    1        1   \
+    // S = <  ------ , ------  >
+    //      \ αw|∇u|   αw|∇v| /
+    float2 S = float2(1.0 / (a * w * length(gradU)), 1.0 / (a * w * length(gradV)));
 
     // Eq.2
     // E = { log₂(Sᵤ), log₂(Sᵥ) }
@@ -175,7 +197,7 @@ float4 SampleMetaTexture(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv, float
 }
 
 // Implementing '3.1. Texture scales and blend coefficients' & '3.4. Compensating for skew'
-float4 SampleMetaTextureSkewed(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv, float2 gradU, float2 gradV, float w, float n)
+float4 SampleMetaTextureSkewed(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv, float2 gradU, float2 gradV, float a, float w, float n)
 {
     // Cache
     float lenGradU = length(gradU);
@@ -243,13 +265,20 @@ float4 SampleMetaTextureSkewed(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv,
     //      /   1       1   \
     // S = <  ----- , -----  >
     //      \ w|∇u|   w|∇v| /
-    float2 s = float2(1.0 / (w * lenGradU), 1.0 / (w * lenGradV));
+    //
+    //float2 S = float2(1.0 / (w * lenGradU), 1.0 / (w * lenGradV));
+
+    // Eq.11 (Replaces Eq.1)
+    //      /    1        1   \
+    // S = <  ------ , ------  >
+    //      \ αw|∇u|   αw|∇v| /
+    float2 S = float2(1.0 / (a * w * length(gradU)), 1.0 / (a * w * length(gradV)));
 
     // Eq.2
     // E = { log₂(Sᵤ), log₂(Sᵥ) }
     //
-    // float2 E = float2(log2(s.x), log2(s.y));
-    float2 E = log2(s);
+    // float2 E = float2(log2(S.x), log2(S.y));
+    float2 E = log2(S);
 
     float2 uv00 = float2(exp2(floor(E.x)) * uv0.x, exp2(floor(E.y)) * uv0.y);   // U′₀ (Eq.3)
     float2 uv01 = float2(uv00.x, 2 * uv00.y);                                   // U′₁ (Eq.4)

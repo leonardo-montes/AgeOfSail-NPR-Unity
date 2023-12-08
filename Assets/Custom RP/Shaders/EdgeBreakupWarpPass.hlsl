@@ -1,9 +1,10 @@
 #ifndef EDGE_BREAKUP_PASS_INCLUDED
 #define EDGE_BREAKUP_PASS_INCLUDED
 
-//#define _COMPENSATE_DISTANCE
 //#define _USE_SMOOTH_UV_GRADIENT
-//#define _USE_SKEWED_META_TEXTURE
+//#define _COMPENSATE_RADIAL_ANGLE
+//#define _COMPENSATE_SKEW
+//#define _COMPENSATE_DISTANCE
 
 struct Attributes {
 	float3 positionOS : POSITION;
@@ -23,6 +24,9 @@ struct Varyings {
 		float4 uvGradWS : VAR_UV_GRADIENT;
 	#endif
 	float2 baseUV : VAR_BASE_UV;
+	#if defined(_COMPENSATE_RADIAL_ANGLE)
+		float4 screenUV : VAR_SCREEN_UV;
+	#endif
 	#if defined(_COMPENSATE_DISTANCE)
 		float dist : VAR_DIST;
 	#endif
@@ -68,6 +72,11 @@ Varyings EdgeBreakupPassVertex (Attributes input) {
 		output.tangentVS = mul((float3x3)UNITY_MATRIX_V, tangentWS);
 		output.binormalVS = mul((float3x3)UNITY_MATRIX_V, binormalWS);
 	#endif
+	
+	#if defined(_COMPENSATE_RADIAL_ANGLE)
+		//output.screenUV = ComputeScreenPos(output.positionCS_SS);
+		output.screenUV = output.positionCS_SS;
+	#endif
 
 	output.baseUV.xy = TransformBaseUV(input.baseUV.xy);
 
@@ -101,11 +110,19 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 
 	float intensity = 1.0;
 
-	// MetaTexture sampling
-	#if defined(_USE_SKEWED_META_TEXTURE)
-		warp = SampleMetaTextureSkewed(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, input.baseUV, gradU, gradV, _EdgeBreakupWarpTextureScale, _EdgeBreakupSkew);
+	// '3.3. Compensating for radial angle'
+	#if defined(_COMPENSATE_RADIAL_ANGLE)
+		float2 screenUV = input.screenUV.xy / input.screenUV.w;
+    	float a = GetRadialAngleCompensationCoefficient(screenUV, UNITY_MATRIX_P);
 	#else
-		warp = SampleMetaTexture(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, input.baseUV, gradU, gradV, _EdgeBreakupWarpTextureScale);
+		float a = 1.0;
+	#endif
+
+	// MetaTexture sampling
+	#if defined(_COMPENSATE_SKEW)
+		warp = SampleMetaTextureSkewed(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, input.baseUV, gradU, gradV, a, _EdgeBreakupWarpTextureScale, _EdgeBreakupSkew);
+	#else
+		warp = SampleMetaTexture(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, input.baseUV, gradU, gradV, a, _EdgeBreakupWarpTextureScale);
 	#endif
 
     // '4.4. Compensating for distance'

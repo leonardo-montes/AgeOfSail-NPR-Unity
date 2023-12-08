@@ -67,4 +67,16 @@ float3 NormalTangentToWorld (float3 normalTS, float3 normalWS, float4 tangentWS)
 	return TransformTangentToWorld(normalTS, tangentToWorld);
 }
 
+inline float4 ComputeScreenPos (float4 pos) {
+    float4 o = pos * 0.5;
+    #if defined(UNITY_HALF_TEXEL_OFFSET)
+    	o.xy = float2(o.x, o.y * _ProjectionParams.x) + o.w * _ScreenParams.zw;
+    #else
+    	o.xy = float2(o.x, o.y * _ProjectionParams.x) + o.w;
+    #endif
+ 
+    o.zw = pos.zw;
+    return o;
+}
+
 #endif

@@ -9,7 +9,7 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 - 3. MetaTexture
     - [x] 3.1. Texture scales and blend coefficients
     - [X] \(WIP) 3.2. Approximate smooth UV gradients
-    - [ ] 3.3. Compensating for radial angle
+    - [X] 3.3. Compensating for radial angle
     - [x] 3.4. Compensating for skew
     - [ ] 3.5. Orienting texture to indicate contour
     - [x] 3.6. Compensating for contrast reduction
