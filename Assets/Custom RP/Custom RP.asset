@@ -50,7 +50,7 @@ MonoBehaviour:
     debug: 1
     distance: 10
     warpTextureScale: 20
-    skew: 1
+    skew: 0.0000001192093
   colorLUTResolution: 32
   cameraRendererShader: {fileID: 4800000, guid: 8ddf7a135e9224bf68caaacdb35c85f0, type: 3}
   useDynamicBatching: 1

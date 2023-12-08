@@ -81,6 +81,7 @@ Material:
     m_Floats:
     - _BumpScale: 1
     - _Clipping: 0
+    - _CompensateDistance: 0
     - _Cutoff: 0.5
     - _DetailAlbedo: 1
     - _DetailMapToggle: 0

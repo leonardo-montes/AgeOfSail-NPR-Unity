@@ -37,6 +37,8 @@
 
 		[HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
 		[HideInInspector] _Color("Color for Lightmap", Color) = (0.5, 0.5, 0.5, 1.0)
+		
+		[Toggle(_COMPENSATE_DISTANCE)] _CompensateDistance ("Edge breakup: compensate distance", Float) = 0
 	}
 	
 	SubShader {
@@ -114,13 +116,16 @@
 			}
 
 			HLSLPROGRAM
-			#pragma target 3.5
+			#pragma target 4.5
+			#pragma shader_feature _COMPENSATE_DISTANCE
+			#pragma multi_compile_instancing
 			#pragma vertex EdgeBreakupPassVertex
 			#pragma fragment EdgeBreakupPassFragment
+			#include "../ShaderLibrary/MetaTexture.hlsl"
 			#include "EdgeBreakupWarpPass.hlsl"
 			ENDHLSL
 		}
 	}
 
-	CustomEditor "CustomShaderGUI"
+	//CustomEditor "CustomShaderGUI"
 }
