@@ -17,7 +17,7 @@ struct Varyings {
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-// Inflated surface
+// 4.1. Edge inflation
 void Inflate(inout float4 positionCS_SS, in float3 normalWS, in float2 screenSize, in float offsetDistance, in float distanceFromCamera)
 {
 	float3 normalCS_SS = mul((float3x3)UNITY_MATRIX_VP, normalWS);
