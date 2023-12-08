@@ -4,6 +4,7 @@ Unity implementation of the paper _[Real-time non-photorealistic animation for i
 
 Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Project](https://bitbucket.org/catlikecoding-projects/custom-srp-project/src/master/) as a base for the Rendering Pipeline.
 
+
 **Implementation _(based on the Paper)_:**
 - 3. MetaTexture
     - [x] 3.1. Texture scales and blend coefficients

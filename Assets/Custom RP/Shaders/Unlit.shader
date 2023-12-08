@@ -10,6 +10,8 @@
 		[Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 1
 		[Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 0
 		[Enum(Off, 0, On, 1)] _ZWrite ("Z Write", Float) = 1
+		
+		[Toggle(_COMPENSATE_DISTANCE)] _CompensateDistance ("Edge breakup: compensate distance", Float) = 0
 	}
 	
 	SubShader {
@@ -64,7 +66,23 @@
 			#include "MetaPass.hlsl"
 			ENDHLSL
 		}
+
+		Pass {
+			Tags {
+				"LightMode" = "EdgeBreakup"
+			}
+
+			HLSLPROGRAM
+			#pragma target 4.5
+			#pragma shader_feature _COMPENSATE_DISTANCE
+			#pragma multi_compile_instancing
+			#pragma vertex EdgeBreakupPassVertex
+			#pragma fragment EdgeBreakupPassFragment
+			#include "../ShaderLibrary/MetaTexture.hlsl"
+			#include "EdgeBreakupWarpPass.hlsl"
+			ENDHLSL
+		}
 	}
 
-	CustomEditor "CustomShaderGUI"
+	//CustomEditor "CustomShaderGUI"
 }
