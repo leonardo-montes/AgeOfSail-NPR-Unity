@@ -16,7 +16,7 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 
 - 4. Edge Breakup
     - [x] 4.1. Edge inflation
-    - [ ] 4.2. Animated line boil
+    - [X] 4.2. Animated line boil
     - [ ] 4.3. Compensating for camera roll
     - [x] 4.4. Compensating for distance
 
