@@ -6,7 +6,6 @@
 // (alt) https://storage.googleapis.com/pub-tools-public-publication-data/pdf/391e12ba29e5430c9016a1c66846a3dbf6438bb8.pdf
 
 // TODO: Add '3.5. Orienting texture to indicate contour'
-// TODO: Add '4.3. Compensating for camera roll'
 
 void GetUVGradientFromDerivatives (float2 uv, out float2 gradU, out float2 gradV)
 {
@@ -99,12 +98,6 @@ void CompensateContrastReduction (in float2 blend, in float skewBlend, inout flo
     // Apply contrast: "simply multiply the contrast by a single compensation factor c"
     x = Contrast(x, 1.0 + (1.0 - saturate(c)) * 2.0);
 }
-
-// '4.2. Animated line boil'
-// TODO!
-
-// '4.3. Compensating for camera roll'
-// TODO!
 
 // '4.4. Compensating for distance'
 void CompensateDistance(float intensity, float d, inout float4 result)

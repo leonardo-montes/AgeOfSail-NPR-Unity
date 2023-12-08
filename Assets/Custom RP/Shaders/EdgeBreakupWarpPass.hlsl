@@ -104,6 +104,7 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 
 	float2 uv = input.baseUV;
 
+	// '4.2. Animated line boil'
 	#if defined(_USE_ANIMATED_LINE_BOIL)
 		uv += _EdgeBreakupTime[_AnimatedLineBoilFramerate];
 	#endif
@@ -131,6 +132,12 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 	#else
 		warp = SampleMetaTexture(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, uv, gradU, gradV, a, _EdgeBreakupWarpTextureScale);
 	#endif
+
+	// '4.3. Compensating for camera roll'
+	warp.rg -= 0.5;
+	float2 heading = normalize(gradU);
+	warp.rg = float2(warp.r * heading.x + warp.g * heading.y, warp.r * heading.y - warp.g * heading.x);
+	warp.rg += 0.5;
 
     // '4.4. Compensating for distance'
 	#if defined(_COMPENSATE_DISTANCE)
