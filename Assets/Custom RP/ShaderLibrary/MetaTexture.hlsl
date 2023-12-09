@@ -17,28 +17,24 @@ void GetUVGradientFromDerivatives (float2 uv, out float2 gradU, out float2 gradV
 }
 
 // 3.2. Approximate smooth UV gradients
-void GetApproximateSmoothUVGradient (float2 uv, float4 UVGradWS, float3 tangentVS, float3 binormalVS, out float2 gradU, out float2 gradV)
+float4 GetApproximateSmoothUVGradient (float3 tangentVS, float3 binormalVS, float3 viewDir, float2 gradUWS, float2 gradVWS)
 {
-    // Tₛ = screen-space projections of the unit tangent
-    float3 tangentSS = tangentVS;
-
-    // Bₛ = screen-space projections of the unit binormal
-    float3 binormalSS = binormalVS;
-
-    // ∇ᵥᵥu = world-space UV gradients
-    float2 gradUWS = UVGradWS.xy;
-
-    // ∇ᵥᵥv = world-space UV gradients
-    float2 gradVWS = UVGradWS.zw;
+    // Project the view-space vectors onto the view direction to get vectors orthogonal to the camera
+    //   Tₛ = screen-space projections of the unit tangent
+	float3 tangentSS = tangentVS - (dot(tangentVS, viewDir) * viewDir);
+    //   Bₛ = screen-space projections of the unit binormal
+	float3 binormalSS = binormalVS - (dot(binormalVS, viewDir) * viewDir);
 
     // Eq.9
     // ∇ₛu = |∇ᵥᵥu|Tₛ/|Tₛ|²
-    // ∇ₛv = |∇ᵥᵥv|Bₛ/|Bₛ|²
-    gradV = length(gradVWS) * tangentSS.xy / length(tangentSS) * length(tangentSS);
+	float2 gradU = gradUWS * tangentSS.xy / pow(length(tangentSS), 2.0); 
 
     // Eq.10
     // ∇ₛv = |∇ᵥᵥv|Bₛ/|Bₛ|²
-    gradU = length(gradUWS) * binormalSS.xy / length(binormalSS) * length(binormalSS);
+	float2 gradV = gradVWS * binormalSS.xy / pow(length(binormalSS), 2.0);
+
+    // Return ∇ₛu as XY and ∇ₛv as ZW
+    return float4(gradU, gradV);
 }
 
 float CubicBlend (float x)
@@ -145,7 +141,8 @@ float4 SampleMetaTexture(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv, float
     // U₀ = { 2⌊ᴱᵘ⌋u, 2⌊ᴱᵛ⌋v }
     // 
     // float2 uv0 = float2(pow(2, (floor(E.x))) * uv.x, pow(2, (floor(E.y))) * uv.y);
-    float2 uv0 = float2(exp2(floor(E.x)) * uv.x, exp2(floor(E.y)) * uv.y);
+    // float2 uv0 = float2(exp2(floor(E.x)) * uv.x, exp2(floor(E.y)) * uv.y);
+    float2 uv0 = exp2(floor(E)) * uv;
 
     // Eq.4 (Error in original paper: Eq.4 and Eq.5 are inverted)
     // U₁ = { 2u₀, v₀ }
@@ -269,12 +266,13 @@ float4 SampleMetaTextureSkewed(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv,
     //
     // float2 E = float2(log2(S.x), log2(S.y));
     float2 E = log2(S);
+    float2 scaledFlooredE = exp2(floor(E));
 
-    float2 uv00 = float2(exp2(floor(E.x)) * uv0.x, exp2(floor(E.y)) * uv0.y);   // U′₀ (Eq.3)
+    float2 uv00 = scaledFlooredE * uv0;                                         // U′₀ (Eq.3)
     float2 uv01 = float2(uv00.x, 2 * uv00.y);                                   // U′₁ (Eq.4)
     float2 uv02 = float2(2 * uv00.x, uv00.y);                                   // U′₂ (Eq.5)
     float2 uv03 = float2(2 * uv00.x, 2 * uv00.y);                               // U′₃ (Eq.6)
-    float2 uv10 = float2(exp2(floor(E.x)) * uv1.x, exp2(floor(E.y)) * uv1.y);   // U′′₀ (Eq.3)
+    float2 uv10 = scaledFlooredE * uv1;                                         // U′′₀ (Eq.3)
     float2 uv11 = float2(uv10.x, 2 * uv10.y);                                   // U′′₁ (Eq.4)
     float2 uv12 = float2(2 * uv10.x, uv10.y);                                   // U′′₂ (Eq.5)
     float2 uv13 = float2(2 * uv10.x, 2 * uv10.y);                               // U′′₃ (Eq.6)

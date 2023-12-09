@@ -46,7 +46,7 @@ public partial class PostFXStack
 		fxSourceId = Shader.PropertyToID("_PostFXSource"),
 		fxSource2Id = Shader.PropertyToID("_PostFXSource2"),
 		edgeBreakupCompResultId = Shader.PropertyToID("_EdgeBreakupCompResult"),
-		edgeBreakupDistanceId = Shader.PropertyToID("_EdgeBreakupDistance");
+		edgeBreakupDistanceId = Shader.PropertyToID("_EdgeBreakupWidth");
 
 	readonly int
 		colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT"),

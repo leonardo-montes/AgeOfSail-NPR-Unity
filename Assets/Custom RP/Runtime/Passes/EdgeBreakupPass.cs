@@ -36,10 +36,11 @@ public class EdgeBreakupPass
             edgeBreakupDepth,
             RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
-		time = new Vector4(Time.realtimeSinceStartup,
-						   Mathf.Floor(Time.realtimeSinceStartup * 24) / 24,
-						   Mathf.Floor(Time.realtimeSinceStartup * 12) / 12,
-						   Mathf.Floor(Time.realtimeSinceStartup * 8) / 8);
+		float t = (float)(Time.realtimeSinceStartupAsDouble % 3600.0);
+		time = new Vector4(t,
+						   Mathf.Floor(t * 24) / 24,
+						   Mathf.Floor(t * 12) / 12,
+						   Mathf.Floor(t * 8) / 8);
 
 		context.cmd.SetGlobalTexture(edgeBreakupTextureId, edgeBreakupWarpTexture);
 		context.cmd.SetGlobalFloat(edgeBreakupTextureScaleId, edgeBreakupWarpTextureScale);

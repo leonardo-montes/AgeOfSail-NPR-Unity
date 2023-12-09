@@ -44,7 +44,7 @@
 		[Toggle(_COMPENSATE_DISTANCE)] _CompensateDistance ("Edge breakup: compensate for distance", Float) = 0
 		[Toggle(_USE_ANIMATED_LINE_BOIL)] _UseAnimatedLineBoil ("Edge breakup: use animated line boil", Float) = 0
 		[Enum(Realtime, 0, 24fps, 1, 12fps, 2, 8fps, 3)] _AnimatedLineBoilFramerate ("Edge breakup: animated line boil framerate", Float) = 3
-		_Test("test", Vector) = (0.5, 0.5, 0.5, 1.0)
+		_WorldSpaceUVGradient("World Space UV Gradient", Vector) = (1, 1, 0, 0)
 	}
 	
 	SubShader {
