@@ -129,7 +129,7 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 
 	// '4.2. Animated line boil'
 	#if defined(_USE_ANIMATED_LINE_BOIL)
-		uv += _EdgeBreakupTime[_AnimatedLineBoilFramerate] % 1.0;
+		uv.x += (_EdgeBreakupTime[_AnimatedLineBoilFramerate] * 0.3) % 1.0;
 	#endif
 
 	float2 gradU, gradV;

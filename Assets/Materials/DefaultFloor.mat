@@ -12,6 +12,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _COMPENSATE_SKEW
   - _RECEIVE_SHADOWS
   - _USE_SMOOTH_UV_GRADIENT
   m_InvalidKeywords:
@@ -86,7 +87,7 @@ Material:
     - _Clipping: 0
     - _CompensateDistance: 0
     - _CompensateRadialAngle: 0
-    - _CompensateSkew: 0
+    - _CompensateSkew: 1
     - _Cutoff: 0.5
     - _DetailAlbedo: 1
     - _DetailMapToggle: 0
