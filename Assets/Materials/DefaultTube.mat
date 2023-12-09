@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DefaultCube
+  m_Name: DefaultTube
   m_Shader: {fileID: 4800000, guid: d2c448af154f94dda8a9c42d2b0171f0, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -88,6 +88,7 @@ Material:
     - _CompensateDistance: 0
     - _CompensateRadialAngle: 0
     - _CompensateSkew: 1
+    - _Cull: 0
     - _Cutoff: 0.5
     - _DetailAlbedo: 1
     - _DetailMapToggle: 0
@@ -124,5 +125,5 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Test: {r: 1, g: 1, b: 1, a: 1}
-    - _WorldSpaceUVGradient: {r: 2, g: 2, b: 0, a: 0}
+    - _WorldSpaceUVGradient: {r: 2, g: 4, b: 0, a: 0}
   m_BuildTextureStacks: []

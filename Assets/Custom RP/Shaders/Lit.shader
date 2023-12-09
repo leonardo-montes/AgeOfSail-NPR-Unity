@@ -34,6 +34,7 @@
 		[Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 1
 		[Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 0
 		[Enum(Off, 0, On, 1)] _ZWrite ("Z Write", Float) = 1
+		[Enum(Off, 0, Back, 1, Front, 2)] _Cull ("Cull", Float) = 2
 
 		[HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
 		[HideInInspector] _Color("Color for Lightmap", Color) = (0.5, 0.5, 0.5, 1.0)
@@ -58,6 +59,7 @@
 				"LightMode" = "CustomLit"
 			}
 
+			Cull [_Cull]
 			Blend [_SrcBlend] [_DstBlend], One OneMinusSrcAlpha
 			ZWrite [_ZWrite]
 
@@ -89,6 +91,8 @@
 			}
 
 			ColorMask 0
+
+			Cull [_Cull]
 			
 			HLSLPROGRAM
 			#pragma target 3.5
@@ -120,6 +124,8 @@
 			Tags {
 				"LightMode" = "EdgeBreakup"
 			}
+
+			Cull [_Cull]
 
 			HLSLPROGRAM
 			#pragma target 4.5
