@@ -47,6 +47,7 @@
 		[Enum(Realtime, 0, 24fps, 1, 12fps, 2, 8fps, 3)] _AnimatedLineBoilFramerate ("Edge breakup: animated line boil framerate", Float) = 3
 		_WorldSpaceUVGradient("Edge breakup: World Space UV Gradient", Vector) = (1, 1, 0, 0)
 		_EdgeBreakupDistanceFadeMultiplier("Edge breakup: distance fade multiplier", Float) = 1.0
+		_EdgeBreakupWidthMultiplier("Edge breakup: width (aka warp amount) multiplier", Float) = 1.0
 	}
 	
 	SubShader {

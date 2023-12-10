@@ -98,7 +98,8 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothness: 1
     - _DstBlend: 0
-    - _EdgeBreakupDistanceFadeMultiplier: 2
+    - _EdgeBreakupDistanceFadeMultiplier: 1
+    - _EdgeBreakupWidthMultiplier: 0.5
     - _Fresnel: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5

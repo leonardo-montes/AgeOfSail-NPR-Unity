@@ -44,7 +44,10 @@ void Inflate(inout float4 positionCS_SS, in float3 normalCS_SS, in float2 screen
 	#endif
 	positionCS_SS.xy += offset;
 }
+
 float _EdgeBreakupWidth;
+float _EdgeBreakupWidthMultiplier;
+
 float2 _WorldSpaceUVGradient;
 
 Varyings EdgeBreakupPassVertex (Attributes input) {
@@ -73,7 +76,7 @@ Varyings EdgeBreakupPassVertex (Attributes input) {
 	// Inflate the mesh along normals with fixed width
 	float3 normalInflatedWS = mul((float3x3)UNITY_MATRIX_M, input.normalInflatedOS);
 	float3 normalInflatedCS_SS = mul((float3x3)UNITY_MATRIX_VP, input.normalInflatedOS);
-	Inflate(output.positionCS_SS, normalInflatedCS_SS, _ScreenParams.xy, _EdgeBreakupWidth, distanceFromCamera);
+	Inflate(output.positionCS_SS, normalInflatedCS_SS, _ScreenParams.xy, _EdgeBreakupWidth * _EdgeBreakupWidthMultiplier, distanceFromCamera);
 
 	#if defined(_USE_SMOOTH_UV_GRADIENT)
 		// World-space tangent and binormal from object-space
@@ -160,6 +163,9 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 	#else
 		warp = SampleMetaTexture(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, uv, gradU, gradV, a, _EdgeBreakupWarpTextureScale);
 	#endif
+
+	// Per object width multiplier (aka warp amount)
+	warp = (warp - 0.5) * _EdgeBreakupWidthMultiplier + 0.5;
 
 	// '4.3. Compensating for camera roll'
 	float2 heading = normalize(gradU);
