@@ -16,11 +16,13 @@ public class EdgeBreakupPass
 	static readonly int edgeBreakupTextureScaleId = Shader.PropertyToID("_EdgeBreakupWarpTextureScale");
 	static readonly int edgeBreakupSkewId = Shader.PropertyToID("_EdgeBreakupSkew");
 	static readonly int edgeBreakupTimeId = Shader.PropertyToID("_EdgeBreakupTime");
+	static readonly int edgeBreakupDistanceFadeMultiplierGlobalId = Shader.PropertyToID("_EdgeBreakupDistanceFadeMultiplierGlobal");
 
 	RendererListHandle list;
 	TextureHandle edgeBreakupColor, edgeBreakupDepth;
 	Texture2D edgeBreakupWarpTexture;
 	float edgeBreakupWarpTextureScale;
+	float distanceFadeMultiplierGlobal;
 	float skew;
 	// x = realtime
 	// y = 24 fps
@@ -46,6 +48,7 @@ public class EdgeBreakupPass
 		context.cmd.SetGlobalFloat(edgeBreakupTextureScaleId, edgeBreakupWarpTextureScale);
 		context.cmd.SetGlobalFloat(edgeBreakupSkewId, skew);
 		context.cmd.SetGlobalVector(edgeBreakupTimeId, time);
+		context.cmd.SetGlobalFloat(edgeBreakupDistanceFadeMultiplierGlobalId, distanceFadeMultiplierGlobal);
 
 		context.cmd.DrawRendererList(list);
 		context.renderContext.ExecuteCommandBuffer(context.cmd);
@@ -78,6 +81,7 @@ public class EdgeBreakupPass
 		pass.edgeBreakupWarpTexture = edgeBreakupSettings.warpTexture;
 		pass.edgeBreakupWarpTextureScale = edgeBreakupSettings.warpTextureScale;
 		pass.skew = edgeBreakupSettings.skew;
+		pass.distanceFadeMultiplierGlobal = edgeBreakupSettings.distanceFadeMultiplierGlobal;
 		/*if (!opaque)
 		{
 			if (textures.edgeBreakupColor.IsValid())

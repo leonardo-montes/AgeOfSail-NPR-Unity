@@ -12,6 +12,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _COMPENSATE_DISTANCE
   - _COMPENSATE_SKEW
   - _RECEIVE_SHADOWS
   - _USE_ANIMATED_LINE_BOIL
@@ -86,9 +87,10 @@ Material:
     - _AnimatedLineBoilFramerate: 3
     - _BumpScale: 1
     - _Clipping: 0
-    - _CompensateDistance: 0
+    - _CompensateDistance: 1
     - _CompensateRadialAngle: 0
     - _CompensateSkew: 1
+    - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedo: 1
     - _DetailMapToggle: 0
@@ -96,6 +98,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothness: 1
     - _DstBlend: 0
+    - _EdgeBreakupDistanceFadeMultiplier: 2
     - _Fresnel: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5

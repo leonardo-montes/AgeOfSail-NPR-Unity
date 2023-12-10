@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DefaultFloor
+  m_Name: DefaultFloorNoWarp
   m_Shader: {fileID: 4800000, guid: babe40f09e28e8245aa06744780e4b32, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0

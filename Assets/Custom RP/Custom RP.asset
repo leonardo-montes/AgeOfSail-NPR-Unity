@@ -49,6 +49,7 @@ MonoBehaviour:
     ignoreRenderScale: 0
     debug: 0
     distance: 10
+    distanceFadeMultiplierGlobal: 0.1
     warpTextureScale: 128
     skew: 4
   colorLUTResolution: 32
