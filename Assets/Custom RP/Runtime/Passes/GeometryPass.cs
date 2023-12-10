@@ -69,7 +69,7 @@ public class GeometryPass
 
 		pass.colorAttachment = builder.ReadWriteTexture(textures.colorAttachment);
 		pass.depthAttachment = builder.ReadWriteTexture(textures.depthAttachment);
-		if (!opaque)
+		/*if (!opaque)
 		{
 			if (textures.colorCopy.IsValid())
 			{
@@ -79,11 +79,10 @@ public class GeometryPass
 			{
 				pass.depthAttachment = builder.ReadTexture(textures.depthCopy);
 			}
-		}
+		}*/
 		builder.ReadTexture(shadowTextures.directionalAtlas);
 		builder.ReadTexture(shadowTextures.otherAtlas);
 
-		builder.SetRenderFunc<GeometryPass>(
-			(pass, context) => pass.Render(context));
+		builder.SetRenderFunc<GeometryPass>((pass, context) => pass.Render(context));
 	}
 }

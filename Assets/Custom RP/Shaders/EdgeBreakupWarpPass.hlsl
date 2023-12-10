@@ -13,6 +13,7 @@ struct Attributes {
 		float4 tangentOS : TANGENT;
 	#endif
     float2 baseUV : TEXCOORD0;
+    float3 normalInflatedOS : TEXCOORD3;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -32,10 +33,9 @@ struct Varyings {
 };
 
 // 4.1. Edge inflation
-void Inflate(inout float4 positionCS_SS, in float3 normalWS, in float2 screenSize, in float offsetDistance, in float distanceFromCamera)
+void Inflate(inout float4 positionCS_SS, in float3 normalCS_SS, in float2 screenSize, in float offsetDistance, in float distanceFromCamera)
 {
-	float3 normalCS_SS = mul((float3x3)UNITY_MATRIX_VP, normalWS);
-	float2 offset = normalize(normalCS_SS.xy) / screenSize * positionCS_SS.w * offsetDistance;
+	float2 offset = normalize(normalCS_SS.xy) / float2(screenSize.x * (screenSize.y / screenSize.x), screenSize.y) * positionCS_SS.w * offsetDistance;
 	#if defined(_COMPENSATE_DISTANCE)
     	offset *= CompensateDistance(1.0, distanceFromCamera);
 	#endif
@@ -69,7 +69,9 @@ Varyings EdgeBreakupPassVertex (Attributes input) {
 	output.positionCS_SS = mul(UNITY_MATRIX_P, float4(positionVS, 1.0));
 
 	// Inflate the mesh along normals with fixed width
-	Inflate(output.positionCS_SS, normalWS, _ScreenParams.xy, _EdgeBreakupWidth, distanceFromCamera);
+	float3 normalInflatedWS = mul((float3x3)UNITY_MATRIX_M, input.normalInflatedOS);
+	float3 normalInflatedCS_SS = mul((float3x3)UNITY_MATRIX_VP, input.normalInflatedOS);
+	Inflate(output.positionCS_SS, normalInflatedCS_SS, _ScreenParams.xy, _EdgeBreakupWidth, distanceFromCamera);
 
 	#if defined(_USE_SMOOTH_UV_GRADIENT)
 		// World-space tangent and binormal from object-space

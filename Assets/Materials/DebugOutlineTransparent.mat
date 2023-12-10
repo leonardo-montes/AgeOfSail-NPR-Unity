@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DefaultTube
+  m_Name: DebugOutlineTransparent
   m_Shader: {fileID: 4800000, guid: babe40f09e28e8245aa06744780e4b32, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -21,7 +21,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -88,14 +88,14 @@ Material:
     - _CompensateDistance: 0
     - _CompensateRadialAngle: 0
     - _CompensateSkew: 1
-    - _Cull: 0
+    - _Cull: 1
     - _Cutoff: 0.5
     - _DetailAlbedo: 1
     - _DetailMapToggle: 0
     - _DetailNormalMapScale: 1
     - _DetailNormalScale: 1
     - _DetailSmoothness: 1
-    - _DstBlend: 0
+    - _DstBlend: 10
     - _Fresnel: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -114,16 +114,16 @@ Material:
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _SrcBlend: 1
+    - _SrcBlend: 3
     - _UVSec: 0
     - _UseAnimatedLineBoil: 0
     - _UseSkewedMetaTexture: 1
     - _UseSmoothUVGradient: 1
-    - _ZWrite: 1
+    - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _BaseColor: {r: 1, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Test: {r: 1, g: 1, b: 1, a: 1}
-    - _WorldSpaceUVGradient: {r: 2, g: 4, b: 0, a: 0}
+    - _WorldSpaceUVGradient: {r: 2, g: 2, b: 0, a: 0}
   m_BuildTextureStacks: []

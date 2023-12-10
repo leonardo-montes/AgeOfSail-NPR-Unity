@@ -14,15 +14,13 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
     - [ ] 3.5. Orienting texture to indicate contour
     - [x] 3.6. Compensating for contrast reduction
 
-
 - 4. Edge Breakup
     - [x] 4.1. Edge inflation
-        - [ ] Mesh importer that creates proper normals for edge inflation (especially for facetted meshes with non smooth normals).
-        - [ ] Support for open meshes (like planes, tubes, etc.)
+        - [X] Mesh importer that creates proper normals for edge inflation (especially for facetted meshes with non smooth normals).
+        - [X] Support for open meshes (like planes, tubes, etc.)
     - [X] 4.2. Animated line boil
     - [X] 4.3. Compensating for camera roll
     - [x] 4.4. Compensating for distance
-
 
 - 5. The Rendering Pipeline
     - [x] Warp Pass
@@ -30,7 +28,6 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
     - [ ] Blur Pass
     - [ ] 5.1. Shadow shapes, inner glow, and indication
     - [ ] 5.2. Color control
-
 
 - 6. Applications
     - _Not planned._

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DefaultTube
+  m_Name: DebugOutline
   m_Shader: {fileID: 4800000, guid: babe40f09e28e8245aa06744780e4b32, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -29,8 +29,8 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
+        m_Texture: {fileID: 2800000, guid: f95d162f777cae64aa9214ba2071d740, type: 3}
+        m_Scale: {x: 10, y: 10}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
@@ -88,7 +88,7 @@ Material:
     - _CompensateDistance: 0
     - _CompensateRadialAngle: 0
     - _CompensateSkew: 1
-    - _Cull: 0
+    - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedo: 1
     - _DetailMapToggle: 0
@@ -121,9 +121,9 @@ Material:
     - _UseSmoothUVGradient: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Test: {r: 1, g: 1, b: 1, a: 1}
-    - _WorldSpaceUVGradient: {r: 2, g: 4, b: 0, a: 0}
+    - _WorldSpaceUVGradient: {r: 2, g: 2, b: 0, a: 0}
   m_BuildTextureStacks: []
