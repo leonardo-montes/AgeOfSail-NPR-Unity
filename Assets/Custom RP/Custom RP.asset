@@ -44,14 +44,21 @@ MonoBehaviour:
       atlasSize: 1024
       filter: 2
   postFXSettings: {fileID: 11400000, guid: cead52c04f20ffa48a22b0f69013e922, type: 2}
-  edgeBreakup:
+  edgeBreakupSettings:
     warpTexture: {fileID: 2800000, guid: 9c7cfe9bf30aafb4ba39183305345112, type: 3}
-    ignoreRenderScale: 0
+    ignoreRenderScale: 1
     debug: 0
-    distance: 10
+    distance: 0.005
     distanceFadeMultiplierGlobal: 0.1
     warpTextureScale: 128
     skew: 4
+  ageOfSailPipelineSettings:
+    usePipeline: 1
+    shader: {fileID: 4800000, guid: 068cc99169e50304099b8c9ba4a64134, type: 3}
+    blurPassDownsample: 2
+    blurPassRadius: 0.0015
+    shadowThreshold: 0.5
+    shadowThresholdSoftness: 0.2
   colorLUTResolution: 32
   cameraRendererShader: {fileID: 4800000, guid: 8ddf7a135e9224bf68caaacdb35c85f0, type: 3}
   useDynamicBatching: 1

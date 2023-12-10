@@ -317,7 +317,7 @@ float _EdgeBreakupWidth;
 
 float4 EdgeBreakupCompPassFragment (Varyings input) : SV_TARGET {
 	float2 edgeBreakupWarp = GetSource2(input.screenUV).xy * 2.0 - 1.0;
-	edgeBreakupWarp *= _EdgeBreakupWidth / _ScreenParams.x;
+	edgeBreakupWarp *= _EdgeBreakupWidth;
 	return GetSource(input.screenUV + edgeBreakupWarp);
 }
 

@@ -375,7 +375,7 @@ public static class MeshInflateHelper
     {
         // Cache
         Edge edge;
-        int i, j, id, i0, i1;
+        int i, id;
         int edgeCount = edges.Count;
 
         // Get mask vertices (vertices part of an open-mesh island)

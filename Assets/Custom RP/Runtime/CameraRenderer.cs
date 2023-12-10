@@ -23,7 +23,8 @@ public class CameraRenderer
 		CameraBufferSettings bufferSettings,
 		bool useLightsPerObject,
 		ShadowSettings shadowSettings, PostFXSettings postFXSettings, EdgeBreakupSettings edgeBreakupSettings,
-		int colorLUTResolution)
+		int colorLUTResolution,
+		AgeOfSailPipelineSettings ageOfSailPipelineSettings)
 	{
 		ProfilingSampler cameraSampler;
 		CameraSettings cameraSettings;
@@ -128,9 +129,9 @@ public class CameraRenderer
 			EdgeBreakupPass.Record(renderGraph, camera, cullingResults, cameraSettings.renderingLayerMask, true, textures, edgeBreakupSettings);
 
 			GeometryPass.Record(
-				renderGraph, camera, cullingResults,
+				renderGraph, camera, bufferSize, cullingResults,
 				useLightsPerObject, cameraSettings.renderingLayerMask, true,
-				textures, shadowTextures);
+				textures, shadowTextures, ageOfSailPipelineSettings);
 
 			SkyboxPass.Record(renderGraph, camera, textures);
 
@@ -141,9 +142,9 @@ public class CameraRenderer
 				copier, textures);
 
 			GeometryPass.Record(
-				renderGraph, camera, cullingResults,
+				renderGraph, camera, bufferSize, cullingResults,
 				useLightsPerObject, cameraSettings.renderingLayerMask, false,
-				textures, shadowTextures);
+				textures, shadowTextures, ageOfSailPipelineSettings);
 
 			UnsupportedShadersPass.Record(renderGraph, camera, cullingResults);
 

@@ -24,10 +24,6 @@ MonoBehaviour:
     fadeFireflies: 1
     mode: 1
     scatter: 0.7
-  edgeBreakup:
-    ignoreRenderScale: 1
-    debug: 1
-    distance: 64
   colorAdjustments:
     postExposure: 0
     contrast: 0
@@ -54,4 +50,4 @@ MonoBehaviour:
     highlightsStart: 0
     highLightsEnd: 0
   toneMapping:
-    mode: 1
+    mode: 0

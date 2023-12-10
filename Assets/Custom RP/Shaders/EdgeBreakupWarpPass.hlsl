@@ -38,7 +38,7 @@ float _EdgeBreakupDistanceFadeMultiplier;
 // 4.1. Edge inflation
 void Inflate(inout float4 positionCS_SS, in float3 normalCS_SS, in float2 screenSize, in float offsetDistance, in float distanceFromCamera)
 {
-	float2 offset = normalize(normalCS_SS.xy) / float2(screenSize.x * (screenSize.y / screenSize.x), screenSize.y) * positionCS_SS.w * offsetDistance;
+	float2 offset = normalize(normalCS_SS.xy) / float2((screenSize.y / screenSize.x), 1.0) * positionCS_SS.w * offsetDistance;
 	#if defined(_COMPENSATE_DISTANCE)
     	offset *= CompensateDistance(1.0, distanceFromCamera * _EdgeBreakupDistanceFadeMultiplierGlobal * _EdgeBreakupDistanceFadeMultiplier);
 	#endif

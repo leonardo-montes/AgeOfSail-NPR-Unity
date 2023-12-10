@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -29,7 +30,10 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
 	PostFXSettings postFXSettings = default;
 
 	[SerializeField]
-	EdgeBreakupSettings edgeBreakup = default;
+	EdgeBreakupSettings edgeBreakupSettings = default;
+
+	[SerializeField]
+	AgeOfSailPipelineSettings ageOfSailPipelineSettings = default;
 
 	public enum ColorLUTResolution
 	{ _16 = 16, _32 = 32, _64 = 64 }
@@ -49,6 +53,6 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
 
 	protected override RenderPipeline CreatePipeline() =>
 		new CustomRenderPipeline(cameraBuffer, useSRPBatcher,
-			useLightsPerObject, shadows, edgeBreakup, postFXSettings,
-			(int)colorLUTResolution, cameraRendererShader);
+			useLightsPerObject, shadows, edgeBreakupSettings, postFXSettings,
+			(int)colorLUTResolution, cameraRendererShader, ageOfSailPipelineSettings);
 }

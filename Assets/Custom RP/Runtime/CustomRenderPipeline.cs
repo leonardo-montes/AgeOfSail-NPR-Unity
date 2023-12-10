@@ -12,6 +12,8 @@ public partial class CustomRenderPipeline : RenderPipeline
 
 	readonly bool useLightsPerObject;
 
+	readonly AgeOfSailPipelineSettings ageOfSailPipelineSettings;
+
 	readonly ShadowSettings shadowSettings;
 	readonly PostFXSettings postFXSettings;
 	readonly EdgeBreakupSettings edgeBreakupSettings;
@@ -25,7 +27,7 @@ public partial class CustomRenderPipeline : RenderPipeline
 		bool useSRPBatcher,
 		bool useLightsPerObject, ShadowSettings shadowSettings, EdgeBreakupSettings edgeBreakupSettings,
 		PostFXSettings postFXSettings, int colorLUTResolution,
-		Shader cameraRendererShader)
+		Shader cameraRendererShader, AgeOfSailPipelineSettings ageOfSailPipelineSettings)
 	{
 		this.colorLUTResolution = colorLUTResolution;
 		this.cameraBufferSettings = cameraBufferSettings;
@@ -33,6 +35,7 @@ public partial class CustomRenderPipeline : RenderPipeline
 		this.shadowSettings = shadowSettings;
 		this.edgeBreakupSettings = edgeBreakupSettings;
 		this.useLightsPerObject = useLightsPerObject;
+		this.ageOfSailPipelineSettings = ageOfSailPipelineSettings;
 		GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
 		GraphicsSettings.lightsUseLinearIntensity = true;
 		InitializeForEditor();
@@ -50,7 +53,8 @@ public partial class CustomRenderPipeline : RenderPipeline
 			renderer.Render(
 				renderGraph, context, cameras[i], cameraBufferSettings,
 				useLightsPerObject,
-				shadowSettings, postFXSettings, edgeBreakupSettings, colorLUTResolution);
+				shadowSettings, postFXSettings, edgeBreakupSettings, colorLUTResolution,
+				ageOfSailPipelineSettings);
 		}
 		renderGraph.EndFrame();
 	}

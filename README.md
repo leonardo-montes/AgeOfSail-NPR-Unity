@@ -4,6 +4,8 @@ Unity implementation of the paper _[Real-time non-photorealistic animation for i
 
 Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Project](https://bitbucket.org/catlikecoding-projects/custom-srp-project/src/master/) as a base for the Rendering Pipeline.
 
+![Screenshot of the result in Unity.](/screenshot.jpg)
+
 
 **Implementation _(based on the Paper)_:**
 - 3. MetaTexture
@@ -24,10 +26,10 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 
 - 5. The Rendering Pipeline
     - [x] Warp Pass
-    - [ ] Shadow Pass
-    - [ ] Blur Pass
-    - [ ] 5.1. Shadow shapes, inner glow, and indication
-    - [ ] 5.2. Color control
+    - [X] Shadow Pass
+    - [X] \(WIP) Blur Pass
+    - [X] 5.1. Shadow shapes, inner glow, and indication
+    - [X] \(WIP) 5.2. Color control
 
 - 6. Applications
     - _Not planned._
