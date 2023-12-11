@@ -116,11 +116,16 @@ float _BlurSigma;
 void FillKernel(out float kernel[BLUR_MSIZE], out float Z)
 {
 	Z = 0;
-	for (int j = 0; j <= BLUR_KSIZE; ++j) {
+	int j;
+	[unroll]
+	for (j = 0; j <= BLUR_KSIZE; ++j)
+	{
 		kernel[BLUR_KSIZE+j] = kernel[BLUR_KSIZE-j] = normpdf(float(j), BLUR_SIGMA);
 	}
 
-	for (int j = 0; j < BLUR_MSIZE; ++j) {
+	[unroll]
+	for (j = 0; j < BLUR_MSIZE; ++j)
+	{
 		Z += kernel[j];
 	}
 }

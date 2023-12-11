@@ -11,5 +11,4 @@ public class EdgeBreakupSettings
     [Min(0f)] public float distance = 1.0f;
     [Min(0f)] public float distanceFadeMultiplierGlobal = 1.0f;
     public float warpTextureScale = 1.0f;
-    [Min(math.EPSILON)] public float skew = 4.0f;
 }

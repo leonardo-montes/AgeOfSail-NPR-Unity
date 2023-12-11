@@ -7,17 +7,18 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DefaultTwoSidedNoWarp
-  m_Shader: {fileID: 4800000, guid: babe40f09e28e8245aa06744780e4b32, type: 3}
+  m_Name: DefaultTubeWarpOnly
+  m_Shader: {fileID: 4800000, guid: 000569cbb1e962748a3f835fb1b39cae, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _RECEIVE_SHADOWS
-  m_InvalidKeywords:
+  - _COMPENSATE_DISTANCE
   - _COMPENSATE_SKEW
+  - _USE_SMOOTH_UV_GRADIENT
+  m_InvalidKeywords:
+  - _RECEIVE_SHADOWS
   - _SHADOWS_ON
   - _USE_SKEWED_META_TEXTURE
-  - _USE_SMOOTH_UV_GRADIENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -85,7 +86,7 @@ Material:
     - _AnimatedLineBoilFramerate: 3
     - _BumpScale: 1
     - _Clipping: 0
-    - _CompensateDistance: 0
+    - _CompensateDistance: 1
     - _CompensateRadialAngle: 0
     - _CompensateSkew: 1
     - _Cull: 0
@@ -96,6 +97,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothness: 1
     - _DstBlend: 0
+    - _EdgeBreakupDistanceFadeMultiplier: 1
     - _Fresnel: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -125,5 +127,5 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Test: {r: 1, g: 1, b: 1, a: 1}
-    - _WorldSpaceUVGradient: {r: 2, g: 2, b: 0, a: 0}
+    - _WorldSpaceUVGradient: {r: 2, g: 4, b: 0, a: 0}
   m_BuildTextureStacks: []

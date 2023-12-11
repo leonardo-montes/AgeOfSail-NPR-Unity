@@ -26,6 +26,20 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float, _DetailSmoothness)
 	UNITY_DEFINE_INSTANCED_PROP(float, _DetailNormalScale)
 	UNITY_DEFINE_INSTANCED_PROP(float, _NormalScale)
+	#if defined(_AGE_OF_SAIL_RP_SHADOW_PASS)
+		UNITY_DEFINE_INSTANCED_PROP(float4, _BreakupMap_ST)
+	#elif defined(_AGE_OF_SAIL_RP_COLOR_PASS)
+		UNITY_DEFINE_INSTANCED_PROP(float4, _BaseShadowedColor)
+		UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColorOverlay)
+		UNITY_DEFINE_INSTANCED_PROP(float, _BaseColorSaturation)
+	#endif
+	#if defined(_EDGE_BREAKUP_WARP_PASS)
+		UNITY_DEFINE_INSTANCED_PROP(float, _AnimatedLineBoilFramerate)
+		UNITY_DEFINE_INSTANCED_PROP(float2, _WorldSpaceUVGradient)
+		UNITY_DEFINE_INSTANCED_PROP(float, _EdgeBreakupDistanceFadeMultiplier)
+		UNITY_DEFINE_INSTANCED_PROP(float, _EdgeBreakupWidthMultiplier)
+		UNITY_DEFINE_INSTANCED_PROP(float, _EdgeBreakupSkew)
+	#endif
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 #define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, name)
@@ -147,5 +161,62 @@ float GetSmoothness (InputConfig c) {
 float GetFresnel (InputConfig c) {
 	return INPUT_PROP(_Fresnel);
 }
+
+#if defined(_AGE_OF_SAIL_RP_SHADOW_PASS)
+	TEXTURE2D(_BreakupMap);
+	SAMPLER(sampler_BreakupMap);
+
+	float GetBreakup (InputConfig c) {
+		float4 baseST = INPUT_PROP(_BreakupMap_ST);
+		return SAMPLE_TEXTURE2D(_BreakupMap, sampler_BreakupMap, c.baseUV * baseST.xy + baseST.zw).r;
+	}
+#elif defined(_AGE_OF_SAIL_RP_COLOR_PASS)
+	TEXTURE2D(_BaseShadowedMap);
+	SAMPLER(sampler_BaseShadowedMap);
+
+	float4 GetBaseShadowed (InputConfig c) {
+		float4 map = SAMPLE_TEXTURE2D(_BaseShadowedMap, sampler_BaseShadowedMap, c.baseUV);
+		float4 color = INPUT_PROP(_BaseShadowedColor);
+		
+		return map * color;
+	}
+
+	float4 GetBaseColorOverlay()
+	{
+		return INPUT_PROP(_BaseColorOverlay);
+	}
+
+	float4 GetBaseColorSaturation()
+	{
+		return INPUT_PROP(_BaseColorSaturation);
+	}
+#endif
+
+#if defined(_EDGE_BREAKUP_WARP_PASS)
+	float GetWidthMultiplier()
+	{
+		return INPUT_PROP(_EdgeBreakupWidthMultiplier);
+	}
+
+	int GetAnimatedLineBoilFramerate()
+	{
+		return INPUT_PROP(_AnimatedLineBoilFramerate);
+	}
+
+	float2 GetWorldSpaceUVGradient()
+	{
+		return INPUT_PROP(_WorldSpaceUVGradient);
+	}
+
+	float GetDistanceFadeMultiplier()
+	{
+		return INPUT_PROP(_EdgeBreakupDistanceFadeMultiplier);
+	}
+
+	float GetSkew()
+	{
+		return INPUT_PROP(_EdgeBreakupSkew);
+	}
+#endif
 
 #endif

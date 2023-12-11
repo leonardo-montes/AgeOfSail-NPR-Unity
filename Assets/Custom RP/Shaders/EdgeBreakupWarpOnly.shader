@@ -6,21 +6,23 @@
 		
 		[Enum(Off, 0, Back, 1, Front, 2)] _Cull ("Cull", Float) = 2
 		
-		[Toggle(_USE_SMOOTH_UV_GRADIENT)] _UseSmoothUVGradient ("Edge breakup: use smooth UV gradient", Float) = 0
-		[Toggle(_COMPENSATE_RADIAL_ANGLE)] _CompensateRadialAngle ("Edge breakup: compensate for radial angle", Float) = 0
-		[Toggle(_COMPENSATE_SKEW)] _CompensateSkew ("Edge breakup: compensate for skew", Float) = 0
-		[Toggle(_COMPENSATE_DISTANCE)] _CompensateDistance ("Edge breakup: compensate for distance", Float) = 0
-		[Toggle(_USE_ANIMATED_LINE_BOIL)] _UseAnimatedLineBoil ("Edge breakup: use animated line boil", Float) = 0
-		[Enum(Realtime, 0, 24fps, 1, 12fps, 2, 8fps, 3)] _AnimatedLineBoilFramerate ("Edge breakup: animated line boil framerate", Float) = 3
-		_WorldSpaceUVGradient("Edge breakup: World Space UV Gradient", Vector) = (1, 1, 0, 0)
-		_EdgeBreakupDistanceFadeMultiplier("Edge breakup: distance fade multiplier", Float) = 1.0
-		_EdgeBreakupWidthMultiplier("Edge breakup: width (aka warp amount) multiplier", Float) = 1.0
+		[Header(Edge breakup)]
+		// [Toggle] _EdgeBreakup ("Edge Breakup Warp Pass", Float) = 1
+		[Toggle(_USE_SMOOTH_UV_GRADIENT)] _UseSmoothUVGradient ("Use smooth UV gradient", Float) = 0
+		[Toggle(_COMPENSATE_RADIAL_ANGLE)] _CompensateRadialAngle ("Compensate for radial angle", Float) = 0
+		[Toggle(_COMPENSATE_SKEW)] _CompensateSkew ("Compensate for skew", Float) = 0
+		[Toggle(_COMPENSATE_DISTANCE)] _CompensateDistance ("Compensate for distance", Float) = 0
+		[Toggle(_USE_ANIMATED_LINE_BOIL)] _UseAnimatedLineBoil ("Use animated line boil", Float) = 0
+		[Enum(Realtime, 0, 24fps, 1, 12fps, 2, 8fps, 3)] _AnimatedLineBoilFramerate ("Framerate", Float) = 3
+		_WorldSpaceUVGradient("World Space UV Gradient", Vector) = (1, 1, 0, 0)
+		_EdgeBreakupDistanceFadeMultiplier("Distance fade multiplier", Float) = 1.0
+		_EdgeBreakupWidthMultiplier("Width (aka warp amount) multiplier", Float) = 1.0
+		_EdgeBreakupSkew("Skew", Float) = 4.0
 	}
 	
 	SubShader {
 		HLSLINCLUDE
 		#include "../ShaderLibrary/Common.hlsl"
-		#include "LitInput.hlsl"
 		ENDHLSL
 
 		Pass {
@@ -40,11 +42,13 @@
 			#pragma multi_compile_instancing
 			#pragma vertex EdgeBreakupPassVertex
 			#pragma fragment EdgeBreakupPassFragment
+			#define _EDGE_BREAKUP_WARP_PASS
 			#include "../ShaderLibrary/MetaTexture.hlsl"
+			#include "UnlitInput.hlsl"
 			#include "EdgeBreakupWarpPass.hlsl"
 			ENDHLSL
 		}
 	}
 
-	//CustomEditor "CustomShaderGUI"
+	CustomEditor "CustomShaderGUI"
 }

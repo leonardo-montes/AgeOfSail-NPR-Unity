@@ -1,11 +1,6 @@
 #ifndef EDGE_BREAKUP_PASS_INCLUDED
 #define EDGE_BREAKUP_PASS_INCLUDED
 
-//#define _USE_SMOOTH_UV_GRADIENT
-//#define _COMPENSATE_RADIAL_ANGLE
-//#define _COMPENSATE_SKEW
-//#define _COMPENSATE_DISTANCE
-
 struct Attributes {
 	float3 positionOS : POSITION;
 	float3 normalOS : NORMAL;
@@ -33,22 +28,18 @@ struct Varyings {
 };
 
 float _EdgeBreakupDistanceFadeMultiplierGlobal;
-float _EdgeBreakupDistanceFadeMultiplier;
 
 // 4.1. Edge inflation
 void Inflate(inout float4 positionCS_SS, in float3 normalCS_SS, in float2 screenSize, in float offsetDistance, in float distanceFromCamera)
 {
 	float2 offset = normalize(normalCS_SS.xy) / float2((screenSize.y / screenSize.x), 1.0) * positionCS_SS.w * offsetDistance;
 	#if defined(_COMPENSATE_DISTANCE)
-    	offset *= CompensateDistance(1.0, distanceFromCamera * _EdgeBreakupDistanceFadeMultiplierGlobal * _EdgeBreakupDistanceFadeMultiplier);
+    	offset *= CompensateDistance(1.0, distanceFromCamera * _EdgeBreakupDistanceFadeMultiplierGlobal * GetDistanceFadeMultiplier());
 	#endif
 	positionCS_SS.xy += offset;
 }
 
 float _EdgeBreakupWidth;
-float _EdgeBreakupWidthMultiplier;
-
-float2 _WorldSpaceUVGradient;
 
 Varyings EdgeBreakupPassVertex (Attributes input) {
 	Varyings output;
@@ -76,7 +67,7 @@ Varyings EdgeBreakupPassVertex (Attributes input) {
 	// Inflate the mesh along normals with fixed width
 	float3 normalInflatedWS = mul((float3x3)UNITY_MATRIX_M, input.normalInflatedOS);
 	float3 normalInflatedCS_SS = mul((float3x3)UNITY_MATRIX_VP, input.normalInflatedOS);
-	Inflate(output.positionCS_SS, normalInflatedCS_SS, _ScreenParams.xy, _EdgeBreakupWidth * _EdgeBreakupWidthMultiplier, distanceFromCamera);
+	Inflate(output.positionCS_SS, normalInflatedCS_SS, _ScreenParams.xy, _EdgeBreakupWidth * GetWidthMultiplier(), distanceFromCamera);
 
 	#if defined(_USE_SMOOTH_UV_GRADIENT)
 		// World-space tangent and binormal from object-space
@@ -95,8 +86,9 @@ Varyings EdgeBreakupPassVertex (Attributes input) {
 		//
 		// The float value at the end is there to have consistent results with GetUVGradientFromDerivatives().
 		float scale = (distanceFromCamera / UNITY_MATRIX_P[0][0]) * 0.0002;
-		float2 gradUWS = _WorldSpaceUVGradient.x * scale;
-		float2 gradVWS = _WorldSpaceUVGradient.y * scale;
+		float2 gradUVWS = GetWorldSpaceUVGradient();
+		float2 gradUWS = gradUVWS.x * scale;
+		float2 gradVWS = gradUVWS.y * scale;
 
 		// Get Approximate Smooth UV Gradient from screen-space tangent and binormal
 		output.uvGrad = GetApproximateSmoothUVGradient(tangentVS, binormalVS, positionVS / distanceFromCamera, gradUWS, gradVWS);
@@ -117,9 +109,7 @@ TEXTURE2D(_EdgeBreakupWarpTexture);
 SAMPLER(sampler_EdgeBreakupWarpTexture);
 
 float _EdgeBreakupWarpTextureScale;
-float _EdgeBreakupSkew;
 float4 _EdgeBreakupTime;
-float _AnimatedLineBoilFramerate;
 
 float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 	UNITY_SETUP_INSTANCE_ID(input);
@@ -136,7 +126,7 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 
 	// '4.2. Animated line boil'
 	#if defined(_USE_ANIMATED_LINE_BOIL)
-		uv.x += (_EdgeBreakupTime[_AnimatedLineBoilFramerate] * 0.3) % 1.0;
+		uv.x += (_EdgeBreakupTime[GetAnimatedLineBoilFramerate()] * 0.3) % 1.0;
 	#endif
 
 	float2 gradU, gradV;
@@ -159,13 +149,13 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 
 	// MetaTexture sampling
 	#if defined(_COMPENSATE_SKEW)
-		warp = SampleMetaTextureSkewed(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, uv, gradU, gradV, a, _EdgeBreakupWarpTextureScale, _EdgeBreakupSkew);
+		warp = SampleMetaTextureSkewed(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, uv, gradU, gradV, a, _EdgeBreakupWarpTextureScale, GetSkew());
 	#else
 		warp = SampleMetaTexture(_EdgeBreakupWarpTexture, sampler_EdgeBreakupWarpTexture, uv, gradU, gradV, a, _EdgeBreakupWarpTextureScale);
 	#endif
 
 	// Per object width multiplier (aka warp amount)
-	warp = (warp - 0.5) * _EdgeBreakupWidthMultiplier + 0.5;
+	warp = (warp - 0.5) * GetWidthMultiplier() + 0.5;
 
 	// '4.3. Compensating for camera roll'
 	float2 heading = normalize(gradU);
@@ -174,7 +164,7 @@ float4 EdgeBreakupPassFragment (Varyings input) : SV_TARGET {
 
     // '4.4. Compensating for distance'
 	#if defined(_COMPENSATE_DISTANCE)
-    	CompensateDistance(intensity, input.dist * _EdgeBreakupDistanceFadeMultiplierGlobal * _EdgeBreakupDistanceFadeMultiplier, warp);
+    	CompensateDistance(intensity, input.dist * _EdgeBreakupDistanceFadeMultiplierGlobal * GetDistanceFadeMultiplier(), warp);
 	#endif
 
 	return warp;

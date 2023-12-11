@@ -29,7 +29,7 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
     - [X] Shadow Pass
     - [X] \(WIP) Blur Pass
     - [X] 5.1. Shadow shapes, inner glow, and indication
-    - [X] \(WIP) 5.2. Color control
+    - [X] 5.2. Color control
 
 - 6. Applications
     - _Not planned._

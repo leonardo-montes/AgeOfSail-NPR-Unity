@@ -1,6 +1,7 @@
 ﻿#ifndef CUSTOM_LIT_PASS_INCLUDED
 #define CUSTOM_LIT_PASS_INCLUDED
 
+#include "LitInput.hlsl"
 #include "../ShaderLibrary/Surface.hlsl"
 #include "../ShaderLibrary/Shadows.hlsl"
 #include "../ShaderLibrary/Light.hlsl"
@@ -59,10 +60,6 @@ Varyings LitPassVertex (Attributes input) {
 }
 
 #if defined(_AGE_OF_SAIL_RP_SHADOW_PASS)
-TEXTURE2D(_BreakupMap);
-SAMPLER(sampler_BreakupMap);
-float4 _BreakupMap_ST;
-
 float4 LitPassFragment (Varyings input) : SV_TARGET {
 	UNITY_SETUP_INSTANCE_ID(input);
 	InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
@@ -105,7 +102,7 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 
 	float3 color;
 
-	float breakupMap = SAMPLE_TEXTURE2D(_BreakupMap, sampler_BreakupMap, input.baseUV * _BreakupMap_ST.xy).r;
+	float breakupMap = GetBreakup(config);
 
 	// R: 'In the red channel, we render a simplified Lambert-shaded version of the objects, with cast shadows.'
 	// G: 'The green channel denotes objects that need to have screen-space lens effects, such as light sources or specular highlights'
@@ -117,9 +114,28 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	
 	return float4(color, GetFinalAlpha(surface.alpha));
 }
-#elif defined(_AGE_OF_SAIL_RP_COLOR_PASS)
+#elif defined(_AGE_OF_SAIL_RP_COLOR_PASS) 
 TEXTURE2D(_FinalShadowRT);
 SAMPLER(sampler_FinalShadowRT);
+
+// From https://www.ryanjuckett.com/photoshop-blend-modes-in-hlsl/
+float BlendMode_Overlay(float base, float blend)
+{
+	return (base <= 0.5) ? 2 * base * blend : 1 - 2 * (1 - base) * (1 - blend);
+}
+
+// From https://www.ryanjuckett.com/photoshop-blend-modes-in-hlsl/
+float3 BlendMode_Overlay(float3 base, float3 blend)
+{
+	return float3(BlendMode_Overlay(base.r, blend.r), BlendMode_Overlay(base.g, blend.g), BlendMode_Overlay(base.b, blend.b));
+}
+
+// From https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Saturation-Node.html
+float3 Saturation(float3 color, float saturation)
+{
+    float luma = dot(color, float3(0.2126729, 0.7151522, 0.0721750));
+    return luma.xxx + saturation.xxx * (color - luma.xxx);
+}
 
 float4 LitPassFragment (Varyings input) : SV_TARGET {
 	UNITY_SETUP_INSTANCE_ID(input);
@@ -130,44 +146,28 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	#if defined(_CLIPPING)
 		clip(base.a - GetCutoff(config));
 	#endif
-	
-	Surface surface;
-	surface.position = input.positionWS;
-	#if defined(_NORMAL_MAP)
-		surface.normal = NormalTangentToWorld(
-			GetNormalTS(config), input.normalWS, input.tangentWS
-		);
-		surface.interpolatedNormal = input.normalWS;
-	#else
-		surface.normal = normalize(input.normalWS);
-		surface.interpolatedNormal = surface.normal;
-	#endif
-	surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
-	surface.depth = -TransformWorldToView(input.positionWS).z;
-	surface.color = base.rgb;
-	surface.alpha = base.a;
-	surface.metallic = GetMetallic(config);
-	surface.occlusion = GetOcclusion(config);
-	surface.smoothness = GetSmoothness(config);
-	surface.fresnelStrength = GetFresnel(config);
-	surface.dither = InterleavedGradientNoise(config.fragment.positionSS, 0);
-	surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
 
-	float3 colorLit = surface.color;
-	float3 colorShadowed = surface.color * float3(0.1, 0.1, 0.15);
+	float4 baseShadowed = GetBaseShadowed(config);
 
 	float2 screenUV = input.screenUV.xy / input.screenUV.w;
 	float3 finalShadow = SAMPLE_TEXTURE2D_LOD(_FinalShadowRT, sampler_FinalShadowRT, screenUV, 0).rgb;
 
 	// We use the Final Shadow Pass red channel to blend between these lit and shadowed texture maps on all objects.
-	float3 color = lerp(colorShadowed, colorLit, finalShadow.r);
+	float3 color = lerp(baseShadowed.rgb, base.rgb, max(1.0 - baseShadowed.a, finalShadow.r));
 
 	// Specular
 	color = lerp(color + finalShadow.g * finalShadow.g, 1.0, step(0.8, finalShadow.g));
 
+	// Overlay
+	float4 colorOverlay = GetBaseColorOverlay();
+	color = lerp(color, BlendMode_Overlay(color, colorOverlay.rgb), colorOverlay.a);
+
+	// Saturation
+	color = Saturation(color, GetBaseColorSaturation());
+
 	//color = finalShadow.r;
 	
-	return float4(color, GetFinalAlpha(surface.alpha));
+	return float4(color, GetFinalAlpha(base.a));
 }
 #else
 float4 LitPassFragment (Varyings input) : SV_TARGET {

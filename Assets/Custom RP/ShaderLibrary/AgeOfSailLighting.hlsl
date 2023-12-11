@@ -1,16 +1,16 @@
 ﻿#ifndef AGE_OF_SAIL_LIGHTING_INCLUDED
 #define AGE_OF_SAIL_LIGHTING_INCLUDED
 
-float2 IncomingLight (Surface surface, Light light)
+float IncomingLight (Surface surface, Light light)
 {
 	//return saturate(dot(surface.normal, light.direction) * light.attenuation);
 	float ndotl = saturate(dot(surface.normal, light.direction) * 0.5 + 0.5);
 	return ndotl * step(0.5, light.attenuation);
 }
 
-float2 SpecularHighlight (Surface surface, BRDF brdf, Light light)
+float SpecularHighlight (Surface surface, BRDF brdf, Light light)
 {
-	return step(0.1, SpecularStrength(surface, brdf, light) * brdf.specular * light.attenuation);
+	return step(0.1, SpecularStrength(surface, brdf, light) * length(brdf.specular) * light.attenuation);
 }
 
 float2 GetLighting (Surface surface, BRDF brdf, Light light)

@@ -12,7 +12,7 @@ public partial class CustomRenderPipeline : RenderPipeline
 
 	readonly bool useLightsPerObject;
 
-	readonly AgeOfSailPipelineSettings ageOfSailPipelineSettings;
+	public readonly AgeOfSailPipelineSettings ageOfSailPipelineSettings;
 
 	readonly ShadowSettings shadowSettings;
 	readonly PostFXSettings postFXSettings;

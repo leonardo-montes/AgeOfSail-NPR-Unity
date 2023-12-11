@@ -51,7 +51,6 @@ MonoBehaviour:
     distance: 0.005
     distanceFadeMultiplierGlobal: 0.1
     warpTextureScale: 128
-    skew: 4
   ageOfSailPipelineSettings:
     usePipeline: 1
     shader: {fileID: 4800000, guid: 068cc99169e50304099b8c9ba4a64134, type: 3}
