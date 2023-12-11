@@ -6,6 +6,9 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 
 ![Screenshot of the result in Unity.](/screenshot.jpg)
 
+**Disclaimer:**
+I mostly wanted to implement and share the MetaTexture so I tried to comment it as well as possible to link the shader code to the original paper.
+The rest of the code, mostly the modified elements from the Rendering Pipeline, is very messy and was built for quickly to showcase possible effects. It might get fixed in the future though.
 
 **Implementation _(based on the Paper)_:**
 - 3. MetaTexture
@@ -18,8 +21,6 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 
 - 4. Edge Breakup
     - [x] 4.1. Edge inflation
-        - [X] Mesh importer that creates proper normals for edge inflation (especially for facetted meshes with non smooth normals).
-        - [X] Support for open meshes (like planes, tubes, etc.)
     - [X] 4.2. Animated line boil
     - [X] 4.3. Compensating for camera roll
     - [x] 4.4. Compensating for distance
@@ -33,3 +34,9 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 
 - 6. Applications
     - _Not planned._
+
+**Improvements:**
+- [X] Mesh importer that creates proper normals for edge inflation (especially for facetted meshes with non smooth normals).
+- [X] Mesh importer support for open meshes (like planes, tubes, etc.).
+- [ ] Colored lights.
+- [ ] MetaTexture distance fade zoom support.
