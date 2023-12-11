@@ -26,7 +26,7 @@ public class GeometryPass
 		FinalShadowRTId = Shader.PropertyToID("_FinalShadowRT");
 
 	RendererListHandle list, listCopy;
-	TextureHandle colorAttachment, depthAttachment;
+	TextureHandle colorAttachment, depthAttachment, blurBuffer;
 	AgeOfSailPipelineSettings ageOfSailPipelineSettings;
 	Vector2Int bufferSize;
 
@@ -68,10 +68,13 @@ public class GeometryPass
 		Draw(context.cmd, ageOfSailPipelineSettings.Material, 2, ShadowRTId, BlurPingRTId);
 		Draw(context.cmd, ageOfSailPipelineSettings.Material, 3, BlurPingRTId, BlurPongRTId);
 
+		// Save the blur pass
+		Draw(context.cmd, ageOfSailPipelineSettings.Material, 0, BlurPongRTId, blurBuffer);
+
 		// Final shadow pass (image processing)
 		context.cmd.SetGlobalFloat("_ShadowThreshold", ageOfSailPipelineSettings.shadowThreshold);
 		context.cmd.SetGlobalFloat("_ShadowThresholdSoftness", ageOfSailPipelineSettings.shadowThresholdSoftness);
-		context.cmd.SetGlobalTexture(Source2Id, BlurPongRTId);
+		context.cmd.SetGlobalTexture(Source2Id, blurBuffer);
 		Draw(context.cmd, ageOfSailPipelineSettings.Material, 1, ShadowRTId, FinalShadowRTId);
 
 		// Color pass (render)
@@ -183,6 +186,8 @@ public class GeometryPass
 		}*/
 		builder.ReadTexture(shadowTextures.directionalAtlas);
 		builder.ReadTexture(shadowTextures.otherAtlas);
+
+		pass.blurBuffer = builder.ReadWriteTexture(textures.blurBuffer);
 		
 		pass.ageOfSailPipelineSettings = ageOfSailPipelineSettings;
 		pass.bufferSize = bufferSize;

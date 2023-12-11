@@ -25,7 +25,8 @@ public partial class PostFXStack
 		FXAA,
 		FXAAWithLuma,
 		EdgeBreakupComp,
-		EdgeBreakupDebug
+		EdgeBreakupDebug,
+		BloomAgeOfSail
 	}
 
 	const string
@@ -126,12 +127,12 @@ public partial class PostFXStack
 		ApplySceneViewState();
 	}
 
-	public void Render(RenderGraphContext context, TextureHandle sourceId, TextureHandle edgeBreakupWarpId, EdgeBreakupSettings edgeBreakupSettings)
+	public void Render(RenderGraphContext context, TextureHandle sourceId, TextureHandle edgeBreakupWarpId, TextureHandle blurBuffer, AgeOfSailPipelineSettings ageOfSailPipelineSettings, EdgeBreakupSettings edgeBreakupSettings)
 	{
 		buffer = context.cmd;
 		if (DoEdgeBreakup(sourceId, edgeBreakupWarpId, edgeBreakupSettings))
 		{
-			if (DoBloom(edgeBreakupCompResultId))
+			if (DoBloom(edgeBreakupCompResultId, blurBuffer, ageOfSailPipelineSettings))
 			{
 				DoFinal(bloomResultId);
 				buffer.ReleaseTemporaryRT(bloomResultId);
@@ -144,7 +145,7 @@ public partial class PostFXStack
 		}
 		else
 		{
-			if (DoBloom(sourceId))
+			if (DoBloom(sourceId, blurBuffer, ageOfSailPipelineSettings))
 			{
 				DoFinal(bloomResultId);
 				buffer.ReleaseTemporaryRT(bloomResultId);
@@ -191,8 +192,32 @@ public partial class PostFXStack
 		return true;
 	}
 
-	bool DoBloom(RenderTargetIdentifier sourceId)
+	bool DoBloom(RenderTargetIdentifier sourceId, RenderTargetIdentifier blurBuffer, AgeOfSailPipelineSettings ageOfSailPipelineSettings)
 	{
+		if (ageOfSailPipelineSettings.usePipeline)
+			return DoBloomAgeOfSail(sourceId, blurBuffer);
+		
+		return DoBloomDefault(sourceId);
+	}
+
+	bool DoBloomAgeOfSail(RenderTargetIdentifier sourceId, RenderTargetIdentifier blurBuffer)
+	{
+		buffer.BeginSample("Bloom (Age of Sail RP)");
+
+		buffer.SetGlobalTexture(fxSource2Id, blurBuffer);
+		
+		RenderTextureFormat format = useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+		buffer.GetTemporaryRT(bloomResultId, bufferSize.x, bufferSize.y, 0, FilterMode.Bilinear, format);
+
+		Draw(sourceId, bloomResultId, Pass.BloomAgeOfSail);
+
+		buffer.EndSample("Bloom (Age of Sail RP)");
+		return true;
+	}
+
+	bool DoBloomDefault(RenderTargetIdentifier sourceId)
+	{
+		
 		BloomSettings bloom = settings.Bloom;
 		int width, height;
 		if (bloom.ignoreRenderScale)

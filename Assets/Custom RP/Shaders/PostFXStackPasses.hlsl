@@ -325,4 +325,15 @@ float4 EdgeBreakupDebugPassFragment (Varyings input) : SV_TARGET {
 	return float4(GetSource2(input.screenUV).xy, 0.0, 1.0);
 }
 
+
+float4 AgeOfSailBloomPassFragment (Varyings input) : SV_TARGET {
+	float4 blur = GetSource2(input.screenUV);
+	float4 color = GetSource(input.screenUV);
+
+	// Apply bloom from blur buffer
+	color.rgb += blur.g;
+
+	return color;
+}
+
 #endif

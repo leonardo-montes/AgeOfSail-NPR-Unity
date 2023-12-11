@@ -5,7 +5,8 @@ public readonly ref struct CameraRendererTextures
 	public readonly TextureHandle
 		colorAttachment, depthAttachment,
 		colorCopy, depthCopy,
-		edgeBreakupColor, edgeBreakupDepth;
+		edgeBreakupColor, edgeBreakupDepth,
+		blurBuffer;
 
 	public CameraRendererTextures(
 		TextureHandle colorAttachment,
@@ -13,7 +14,8 @@ public readonly ref struct CameraRendererTextures
 		TextureHandle colorCopy,
 		TextureHandle depthCopy,
 		TextureHandle edgeBreakupColor,
-		TextureHandle edgeBreakupDepth)
+		TextureHandle edgeBreakupDepth,
+		TextureHandle blurBuffer)
 	{
 		this.colorAttachment = colorAttachment;
 		this.depthAttachment = depthAttachment;
@@ -21,5 +23,6 @@ public readonly ref struct CameraRendererTextures
 		this.depthCopy = depthCopy;
 		this.edgeBreakupColor = edgeBreakupColor;
 		this.edgeBreakupDepth = edgeBreakupDepth;
+		this.blurBuffer = blurBuffer;
 	}
 }

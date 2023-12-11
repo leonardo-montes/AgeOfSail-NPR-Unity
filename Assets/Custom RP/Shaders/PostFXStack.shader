@@ -216,5 +216,17 @@
 				#pragma fragment EdgeBreakupDebugPassFragment
 			ENDHLSL
 		}
+		
+		Pass {
+			Name "Age of Sail Bloom"
+
+			Blend [_FinalSrcBlend] [_FinalDstBlend]
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment AgeOfSailBloomPassFragment
+			ENDHLSL
+		}
 	}
 }

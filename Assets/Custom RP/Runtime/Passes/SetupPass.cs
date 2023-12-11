@@ -13,7 +13,7 @@ public class SetupPass
 
 	bool useIntermediateAttachments;
 
-	TextureHandle colorAttachment, depthAttachment, edgeBreakupColor, edgeBreakupDepth;
+	TextureHandle colorAttachment, depthAttachment, edgeBreakupColor, edgeBreakupDepth, blurBuffer;
 
 	Vector2Int attachmentSize;
 
@@ -73,6 +73,7 @@ public class SetupPass
 		TextureHandle colorAttachment, depthAttachment;
 		TextureHandle colorCopy = default, depthCopy = default;
 		TextureHandle edgeBreakupColor, edgeBreakupDepth;
+		TextureHandle blurBuffer;
 		TextureDesc desc;
 		if (useIntermediateAttachments)
 		{
@@ -125,11 +126,19 @@ public class SetupPass
 		edgeBreakupDepth = pass.edgeBreakupDepth =
 			builder.WriteTexture(renderGraph.CreateTexture(desc));
 
+		desc = new TextureDesc(attachmentSize.x, attachmentSize.y)
+		{
+			colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
+			name = "Blur Buffer"
+		};
+		blurBuffer = pass.blurBuffer = 
+			builder.WriteTexture(renderGraph.CreateTexture(desc));
+
 		builder.AllowPassCulling(false);
 		builder.SetRenderFunc<SetupPass>(
 			(pass, context) => pass.Render(context));
 
 		return new CameraRendererTextures(
-			colorAttachment, depthAttachment, colorCopy, depthCopy, edgeBreakupColor, edgeBreakupDepth);
+			colorAttachment, depthAttachment, colorCopy, depthCopy, edgeBreakupColor, edgeBreakupDepth, blurBuffer);
 	}
 }

@@ -156,7 +156,7 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	float3 color = lerp(baseShadowed.rgb, base.rgb, max(1.0 - baseShadowed.a, finalShadow.r));
 
 	// Specular
-	color = lerp(color + finalShadow.g * finalShadow.g, 1.0, step(0.8, finalShadow.g));
+	color = lerp(color, 1.0, step(0.8, finalShadow.g));
 
 	// Overlay
 	float4 colorOverlay = GetBaseColorOverlay();

@@ -150,7 +150,7 @@ public class CameraRenderer
 
 			if (postFXStack.IsActive)
 			{
-				PostFXPass.Record(renderGraph, postFXStack, textures, edgeBreakupSettings);
+				PostFXPass.Record(renderGraph, postFXStack, textures, edgeBreakupSettings, ageOfSailPipelineSettings);
 			}
 			else if (useIntermediateBuffer)
 			{
