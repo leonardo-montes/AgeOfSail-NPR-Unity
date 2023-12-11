@@ -38,5 +38,6 @@ The rest of the code, mostly the modified elements from the Rendering Pipeline, 
 **Improvements:**
 - [X] Mesh importer that creates proper normals for edge inflation (especially for facetted meshes with non smooth normals).
 - [X] Mesh importer support for open meshes (like planes, tubes, etc.).
-- [ ] Colored lights.
+- [X] Colored lights.
+- [ ] Simplified shading model.
 - [ ] MetaTexture distance fade zoom support.

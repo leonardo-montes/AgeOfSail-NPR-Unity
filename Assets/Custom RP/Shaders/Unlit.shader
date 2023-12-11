@@ -44,6 +44,7 @@
 			#pragma target 3.5
 			#pragma shader_feature _CLIPPING
 			#pragma multi_compile _ _AGE_OF_SAIL_RP_SHADOW_PASS _AGE_OF_SAIL_RP_COLOR_PASS
+			#pragma multi_compile _ _AGE_OF_SAIL_RP_SHADOW_COLORED_PASS
 			#pragma multi_compile_instancing
 			#pragma vertex UnlitPassVertex
 			#pragma fragment UnlitPassFragment

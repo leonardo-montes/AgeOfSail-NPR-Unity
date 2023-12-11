@@ -70,7 +70,7 @@
 			}
 
 			Cull [_Cull]
-			Blend [_SrcBlend] [_DstBlend], One OneMinusSrcAlpha
+			Blend [_SrcBlend] [_DstBlend]
 			ZWrite [_ZWrite]
 
 			HLSLPROGRAM
@@ -89,6 +89,7 @@
 			#pragma multi_compile _ LIGHTMAP_ON
 			#pragma multi_compile _ LOD_FADE_CROSSFADE
 			#pragma multi_compile _ _AGE_OF_SAIL_RP_SHADOW_PASS _AGE_OF_SAIL_RP_COLOR_PASS
+			#pragma multi_compile _ _AGE_OF_SAIL_RP_SHADOW_COLORED_PASS
 			#pragma multi_compile_instancing
 			#pragma vertex LitPassVertex
 			#pragma fragment LitPassFragment

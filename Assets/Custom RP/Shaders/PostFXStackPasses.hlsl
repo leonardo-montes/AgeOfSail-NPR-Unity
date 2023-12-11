@@ -331,7 +331,11 @@ float4 AgeOfSailBloomPassFragment (Varyings input) : SV_TARGET {
 	float4 color = GetSource(input.screenUV);
 
 	// Apply bloom from blur buffer
-	color.rgb += blur.g;
+	#if defined(_AGE_OF_SAIL_RP_SHADOW_COLORED_PASS)
+		color.rgb += blur.rgb;
+	#else
+		color.rgb += blur.g;
+	#endif
 
 	return color;
 }

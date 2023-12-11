@@ -224,6 +224,7 @@
 			
 			HLSLPROGRAM
 				#pragma target 3.5
+				#pragma multi_compile _ _AGE_OF_SAIL_RP_SHADOW_COLORED_PASS
 				#pragma vertex DefaultPassVertex
 				#pragma fragment AgeOfSailBloomPassFragment
 			ENDHLSL

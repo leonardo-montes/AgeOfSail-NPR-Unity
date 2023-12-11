@@ -195,12 +195,12 @@ public partial class PostFXStack
 	bool DoBloom(RenderTargetIdentifier sourceId, RenderTargetIdentifier blurBuffer, AgeOfSailPipelineSettings ageOfSailPipelineSettings)
 	{
 		if (ageOfSailPipelineSettings.usePipeline)
-			return DoBloomAgeOfSail(sourceId, blurBuffer);
+			return DoBloomAgeOfSail(sourceId, blurBuffer, ageOfSailPipelineSettings);
 		
 		return DoBloomDefault(sourceId);
 	}
 
-	bool DoBloomAgeOfSail(RenderTargetIdentifier sourceId, RenderTargetIdentifier blurBuffer)
+	bool DoBloomAgeOfSail(RenderTargetIdentifier sourceId, RenderTargetIdentifier blurBuffer, AgeOfSailPipelineSettings ageOfSailPipelineSettings)
 	{
 		buffer.BeginSample("Bloom (Age of Sail RP)");
 
@@ -209,7 +209,13 @@ public partial class PostFXStack
 		RenderTextureFormat format = useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 		buffer.GetTemporaryRT(bloomResultId, bufferSize.x, bufferSize.y, 0, FilterMode.Bilinear, format);
 
+		if (ageOfSailPipelineSettings.useColorLights)
+			buffer.EnableKeyword(GeometryPass.shadowColoredPassKeyword);
+
 		Draw(sourceId, bloomResultId, Pass.BloomAgeOfSail);
+		
+		if (ageOfSailPipelineSettings.useColorLights)
+			buffer.DisableKeyword(GeometryPass.shadowColoredPassKeyword);
 
 		buffer.EndSample("Bloom (Age of Sail RP)");
 		return true;

@@ -15,6 +15,7 @@
 			
 			HLSLPROGRAM
 				#pragma target 3.5
+				#pragma multi_compile _ _AGE_OF_SAIL_RP_SHADOW_COLORED_PASS
 				#pragma vertex DefaultPassVertex
 				#pragma fragment CopyPassFragment
 			ENDHLSL
@@ -25,6 +26,7 @@
 			
 			HLSLPROGRAM
 				#pragma target 3.5
+				#pragma multi_compile _ _AGE_OF_SAIL_RP_SHADOW_COLORED_PASS
 				#pragma vertex DefaultPassVertex
 				#pragma fragment FinalShadowPassFragment
 			ENDHLSL
@@ -35,6 +37,7 @@
 			
 			HLSLPROGRAM
 				#pragma target 3.5
+				#pragma multi_compile _ _AGE_OF_SAIL_RP_SHADOW_COLORED_PASS
 				#pragma vertex DefaultPassVertex
 				#pragma fragment HorizontalBlurPassFragment
 			ENDHLSL
@@ -45,6 +48,7 @@
 			
 			HLSLPROGRAM
 				#pragma target 3.5
+				#pragma multi_compile _ _AGE_OF_SAIL_RP_SHADOW_COLORED_PASS
 				#pragma vertex DefaultPassVertex
 				#pragma fragment VerticalBlurPassFragment
 			ENDHLSL

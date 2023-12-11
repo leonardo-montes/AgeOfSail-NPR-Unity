@@ -53,6 +53,7 @@ MonoBehaviour:
     warpTextureScale: 128
   ageOfSailPipelineSettings:
     usePipeline: 1
+    useColorLights: 1
     shader: {fileID: 4800000, guid: 068cc99169e50304099b8c9ba4a64134, type: 3}
     blurPassDownsample: 2
     blurPassRadius: 0.0015

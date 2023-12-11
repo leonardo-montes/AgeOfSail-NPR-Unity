@@ -43,7 +43,17 @@ Varyings UnlitPassVertex (Attributes input) {
 }
 
 #if defined(_AGE_OF_SAIL_RP_SHADOW_PASS)
+#if defined(_AGE_OF_SAIL_RP_SHADOW_COLORED_PASS)
+struct ShadowBuffers 
+{
+	float4 shadow : SV_TARGET0;
+	float4 shadowSpecThresh : SV_TARGET1;
+};
+
+ShadowBuffers UnlitPassFragment (Varyings input) {
+#else
 float4 UnlitPassFragment (Varyings input) : SV_TARGET {
+#endif
 	UNITY_SETUP_INSTANCE_ID(input);
 	InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
 	
@@ -66,7 +76,15 @@ float4 UnlitPassFragment (Varyings input) : SV_TARGET {
 		clip(base.a - GetCutoff(config));
 	#endif
 
-	return float4(1.0, 0.0, 0.0, GetFinalAlpha(base.a));
+	
+	#if defined(_AGE_OF_SAIL_RP_SHADOW_COLORED_PASS)
+		ShadowBuffers buffers;
+		buffers.shadow = float4(1.0, 1.0, 1.0, GetFinalAlpha(base.a));
+		buffers.shadowSpecThresh = float4(0.0, 0.0, 0.0, 0.0);
+		return buffers;
+	#else
+		return float4(1.0, 0.0, 0.0, GetFinalAlpha(base.a));
+	#endif
 }
 #elif defined(_AGE_OF_SAIL_RP_COLOR_PASS) 
 // From https://www.ryanjuckett.com/photoshop-blend-modes-in-hlsl/

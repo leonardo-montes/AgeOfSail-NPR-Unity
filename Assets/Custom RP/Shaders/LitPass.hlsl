@@ -8,7 +8,11 @@
 #include "../ShaderLibrary/BRDF.hlsl"
 #include "../ShaderLibrary/GI.hlsl"
 #if defined(_AGE_OF_SAIL_RP_SHADOW_PASS)
-	#include "../ShaderLibrary/AgeOfSailLighting.hlsl"
+	#if defined(_AGE_OF_SAIL_RP_SHADOW_COLORED_PASS)
+		#include "../ShaderLibrary/AgeOfSailLightingColored.hlsl"
+	#else
+		#include "../ShaderLibrary/AgeOfSailLighting.hlsl"
+	#endif
 #else
 	#include "../ShaderLibrary/Lighting.hlsl"
 #endif
@@ -60,165 +64,205 @@ Varyings LitPassVertex (Attributes input) {
 }
 
 #if defined(_AGE_OF_SAIL_RP_SHADOW_PASS)
-float4 LitPassFragment (Varyings input) : SV_TARGET {
-	UNITY_SETUP_INSTANCE_ID(input);
-	InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
-	ClipLOD(config.fragment, unity_LODFade.x);
+	#if defined(_AGE_OF_SAIL_RP_SHADOW_COLORED_PASS)
+	struct ShadowBuffers 
+	{
+		float4 shadow : SV_TARGET0;
+		float4 shadowSpecThresh : SV_TARGET1;
+	};
+
+	ShadowBuffers LitPassFragment (Varyings input) {
+	#else
+	float4 LitPassFragment (Varyings input) : SV_TARGET {
+	#endif
+		UNITY_SETUP_INSTANCE_ID(input);
+		InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
+		ClipLOD(config.fragment, unity_LODFade.x);
+			
+		float4 base = GetBase(config);
+		#if defined(_CLIPPING)
+			clip(base.a - GetCutoff(config));
+		#endif
 		
-	float4 base = GetBase(config);
-	#if defined(_CLIPPING)
-		clip(base.a - GetCutoff(config));
-	#endif
-	
-	Surface surface;
-	surface.position = input.positionWS;
-	#if defined(_NORMAL_MAP)
-		surface.normal = NormalTangentToWorld(
-			GetNormalTS(config), input.normalWS, input.tangentWS
-		);
-		surface.interpolatedNormal = input.normalWS;
-	#else
-		surface.normal = normalize(input.normalWS);
-		surface.interpolatedNormal = surface.normal;
-	#endif
-	surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
-	surface.depth = -TransformWorldToView(input.positionWS).z;
-	surface.color = base.rgb;
-	surface.alpha = base.a;
-	surface.metallic = GetMetallic(config);
-	surface.occlusion = GetOcclusion(config);
-	surface.smoothness = GetSmoothness(config);
-	surface.fresnelStrength = GetFresnel(config);
-	surface.dither = InterleavedGradientNoise(config.fragment.positionSS, 0);
-	surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
+		Surface surface;
+		surface.position = input.positionWS;
+		#if defined(_NORMAL_MAP)
+			surface.normal = NormalTangentToWorld(
+				GetNormalTS(config), input.normalWS, input.tangentWS
+			);
+			surface.interpolatedNormal = input.normalWS;
+		#else
+			surface.normal = normalize(input.normalWS);
+			surface.interpolatedNormal = surface.normal;
+		#endif
+		surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
+		surface.depth = -TransformWorldToView(input.positionWS).z;
+		surface.color = base.rgb;
+		surface.alpha = base.a;
+		surface.metallic = GetMetallic(config);
+		surface.occlusion = GetOcclusion(config);
+		surface.smoothness = GetSmoothness(config);
+		surface.fresnelStrength = GetFresnel(config);
+		surface.dither = InterleavedGradientNoise(config.fragment.positionSS, 0);
+		surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
 
-	#if defined(_PREMULTIPLY_ALPHA)
-		BRDF brdf = GetBRDF(surface, true);
-	#else
-		BRDF brdf = GetBRDF(surface);
-	#endif
-	
-	GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
+		#if defined(_PREMULTIPLY_ALPHA)
+			BRDF brdf = GetBRDF(surface, true);
+		#else
+			BRDF brdf = GetBRDF(surface);
+		#endif
+		
+		GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
 
-	float3 color;
+		float3 color;
 
-	float breakupMap = GetBreakup(config);
+		float breakupMap = GetBreakup(config);
+		float breakupMapResult = clamp(breakupMap, 0.3, 0.6) * step(0.01, breakupMap);
 
-	// R: 'In the red channel, we render a simplified Lambert-shaded version of the objects, with cast shadows.'
-	// G: 'The green channel denotes objects that need to have screen-space lens effects, such as light sources or specular highlights'
-	color.rg = GetLighting(surface, brdf, gi);
-	color.r -= breakupMap * 0.5 * (1.0 - color.r);
+		
+		#if defined(_AGE_OF_SAIL_RP_SHADOW_COLORED_PASS)
+			ShadowBuffers buffers;
 
-	// B: 'We also apply an optional breakup map texture to the blue channel on certain surfaces'
-	color.b = clamp(breakupMap, 0.3, 0.6) * step(0.01, breakupMap);
-	
-	return float4(color, GetFinalAlpha(surface.alpha));
-}
+			float3 shadow, shadowSpec;
+			GetLighting(surface, brdf, gi, shadow, shadowSpec);
+
+			buffers.shadow = float4(shadow, GetFinalAlpha(surface.alpha));
+			buffers.shadowSpecThresh = float4(shadowSpec, breakupMapResult);
+			return buffers;
+		#else
+			// R: 'In the red channel, we render a simplified Lambert-shaded version of the objects, with cast shadows.'
+			// G: 'The green channel denotes objects that need to have screen-space lens effects, such as light sources or specular highlights'
+			color.rg = GetLighting(surface, brdf, gi);
+			color.r -= breakupMap * 0.5 * (1.0 - color.r);
+
+			// B: 'We also apply an optional breakup map texture to the blue channel on certain surfaces'
+			color.b = breakupMapResult;
+			
+			return float4(color, GetFinalAlpha(surface.alpha));
+		#endif
+	}
 #elif defined(_AGE_OF_SAIL_RP_COLOR_PASS) 
-TEXTURE2D(_FinalShadowRT);
-SAMPLER(sampler_FinalShadowRT);
+	TEXTURE2D(_FinalShadowRT);
+	SAMPLER(sampler_FinalShadowRT);
 
-// From https://www.ryanjuckett.com/photoshop-blend-modes-in-hlsl/
-float BlendMode_Overlay(float base, float blend)
-{
-	return (base <= 0.5) ? 2 * base * blend : 1 - 2 * (1 - base) * (1 - blend);
-}
+	#if defined(_AGE_OF_SAIL_RP_SHADOW_COLORED_PASS)
+		TEXTURE2D(_FinalShadowSpecThreshRT);
+		SAMPLER(sampler_FinalShadowSpecThreshRT);
+	#endif
 
-// From https://www.ryanjuckett.com/photoshop-blend-modes-in-hlsl/
-float3 BlendMode_Overlay(float3 base, float3 blend)
-{
-	return float3(BlendMode_Overlay(base.r, blend.r), BlendMode_Overlay(base.g, blend.g), BlendMode_Overlay(base.b, blend.b));
-}
+	// From https://www.ryanjuckett.com/photoshop-blend-modes-in-hlsl/
+	float BlendMode_Overlay(float base, float blend)
+	{
+		return (base <= 0.5) ? 2 * base * blend : 1 - 2 * (1 - base) * (1 - blend);
+	}
 
-// From https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Saturation-Node.html
-float3 Saturation(float3 color, float saturation)
-{
-    float luma = dot(color, float3(0.2126729, 0.7151522, 0.0721750));
-    return luma.xxx + saturation.xxx * (color - luma.xxx);
-}
+	// From https://www.ryanjuckett.com/photoshop-blend-modes-in-hlsl/
+	float3 BlendMode_Overlay(float3 base, float3 blend)
+	{
+		return float3(BlendMode_Overlay(base.r, blend.r), BlendMode_Overlay(base.g, blend.g), BlendMode_Overlay(base.b, blend.b));
+	}
 
-float4 LitPassFragment (Varyings input) : SV_TARGET {
-	UNITY_SETUP_INSTANCE_ID(input);
-	InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
-	ClipLOD(config.fragment, unity_LODFade.x);
+	// From https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Saturation-Node.html
+	float3 Saturation(float3 color, float saturation)
+	{
+		float luma = dot(color, float3(0.2126729, 0.7151522, 0.0721750));
+		return luma.xxx + saturation.xxx * (color - luma.xxx);
+	}
+
+	float4 LitPassFragment (Varyings input) : SV_TARGET {
+		UNITY_SETUP_INSTANCE_ID(input);
+		InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
+		ClipLOD(config.fragment, unity_LODFade.x);
+			
+		float4 base = GetBase(config);
+		#if defined(_CLIPPING)
+			clip(base.a - GetCutoff(config));
+		#endif
+
+		float4 baseShadowed = GetBaseShadowed(config);
+
+		float2 screenUV = input.screenUV.xy / input.screenUV.w;
 		
-	float4 base = GetBase(config);
-	#if defined(_CLIPPING)
-		clip(base.a - GetCutoff(config));
-	#endif
+		#if defined(_AGE_OF_SAIL_RP_SHADOW_COLORED_PASS)
+			float3 finalShadow = SAMPLE_TEXTURE2D_LOD(_FinalShadowRT, sampler_FinalShadowRT, screenUV, 0).rgb;
+			float4 finalShadowSpecThresh = SAMPLE_TEXTURE2D_LOD(_FinalShadowSpecThreshRT, sampler_FinalShadowSpecThreshRT, screenUV, 0);
 
-	float4 baseShadowed = GetBaseShadowed(config);
+			// We use the Final Shadow Pass red channel to blend between these lit and shadowed texture maps on all objects.
+			float3 color = lerp(baseShadowed.rgb, base.rgb * finalShadow.rgb, max(1.0 - baseShadowed.a, length(finalShadow.rgb)));
+			
+			// Specular
+			color = lerp(color, finalShadowSpecThresh.rgb, step(0.5, length(finalShadowSpecThresh.rgb)));
+		#else
+			float3 finalShadow = SAMPLE_TEXTURE2D_LOD(_FinalShadowRT, sampler_FinalShadowRT, screenUV, 0).rgb;
 
-	float2 screenUV = input.screenUV.xy / input.screenUV.w;
-	float3 finalShadow = SAMPLE_TEXTURE2D_LOD(_FinalShadowRT, sampler_FinalShadowRT, screenUV, 0).rgb;
+			// We use the Final Shadow Pass red channel to blend between these lit and shadowed texture maps on all objects.
+			float3 color = lerp(baseShadowed.rgb, base.rgb, max(1.0 - baseShadowed.a, finalShadow.r));
 
-	// We use the Final Shadow Pass red channel to blend between these lit and shadowed texture maps on all objects.
-	float3 color = lerp(baseShadowed.rgb, base.rgb, max(1.0 - baseShadowed.a, finalShadow.r));
+			// Specular
+			color = lerp(color, 1.0, step(0.8, finalShadow.g));
+		#endif
+		
+		// Overlay
+		float4 colorOverlay = GetBaseColorOverlay();
+		color = lerp(color, BlendMode_Overlay(color, colorOverlay.rgb), colorOverlay.a);
 
-	// Specular
-	color = lerp(color, 1.0, step(0.8, finalShadow.g));
+		// Saturation
+		color = Saturation(color, GetBaseColorSaturation());
 
-	// Overlay
-	float4 colorOverlay = GetBaseColorOverlay();
-	color = lerp(color, BlendMode_Overlay(color, colorOverlay.rgb), colorOverlay.a);
-
-	// Saturation
-	color = Saturation(color, GetBaseColorSaturation());
-
-	//color = finalShadow.r;
-	
-	return float4(color, GetFinalAlpha(base.a));
-}
+		//color = finalShadow.r;
+		
+		return float4(color, GetFinalAlpha(base.a));
+	}
 #else
-float4 LitPassFragment (Varyings input) : SV_TARGET {
-	UNITY_SETUP_INSTANCE_ID(input);
-	InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
-	ClipLOD(config.fragment, unity_LODFade.x);
-	
-	#if defined(_MASK_MAP)
-		config.useMask = true;
-	#endif
-	#if defined(_DETAIL_MAP)
-		config.detailUV = input.detailUV;
-		config.useDetail = true;
-	#endif
-	
-	float4 base = GetBase(config);
-	#if defined(_CLIPPING)
-		clip(base.a - GetCutoff(config));
-	#endif
-	
-	Surface surface;
-	surface.position = input.positionWS;
-	#if defined(_NORMAL_MAP)
-		surface.normal = NormalTangentToWorld(
-			GetNormalTS(config), input.normalWS, input.tangentWS
-		);
-		surface.interpolatedNormal = input.normalWS;
-	#else
-		surface.normal = normalize(input.normalWS);
-		surface.interpolatedNormal = surface.normal;
-	#endif
-	surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
-	surface.depth = -TransformWorldToView(input.positionWS).z;
-	surface.color = base.rgb;
-	surface.alpha = base.a;
-	surface.metallic = GetMetallic(config);
-	surface.occlusion = GetOcclusion(config);
-	surface.smoothness = GetSmoothness(config);
-	surface.fresnelStrength = GetFresnel(config);
-	surface.dither = InterleavedGradientNoise(config.fragment.positionSS, 0);
-	surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
-	#if defined(_PREMULTIPLY_ALPHA)
-		BRDF brdf = GetBRDF(surface, true);
-	#else
-		BRDF brdf = GetBRDF(surface);
-	#endif
-	GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
-	float3 color = GetLighting(surface, brdf, gi);
-	color += GetEmission(config);
-	return float4(color, GetFinalAlpha(surface.alpha));
-}
+	float4 LitPassFragment (Varyings input) : SV_TARGET {
+		UNITY_SETUP_INSTANCE_ID(input);
+		InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
+		ClipLOD(config.fragment, unity_LODFade.x);
+		
+		#if defined(_MASK_MAP)
+			config.useMask = true;
+		#endif
+		#if defined(_DETAIL_MAP)
+			config.detailUV = input.detailUV;
+			config.useDetail = true;
+		#endif
+		
+		float4 base = GetBase(config);
+		#if defined(_CLIPPING)
+			clip(base.a - GetCutoff(config));
+		#endif
+		
+		Surface surface;
+		surface.position = input.positionWS;
+		#if defined(_NORMAL_MAP)
+			surface.normal = NormalTangentToWorld(
+				GetNormalTS(config), input.normalWS, input.tangentWS
+			);
+			surface.interpolatedNormal = input.normalWS;
+		#else
+			surface.normal = normalize(input.normalWS);
+			surface.interpolatedNormal = surface.normal;
+		#endif
+		surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
+		surface.depth = -TransformWorldToView(input.positionWS).z;
+		surface.color = base.rgb;
+		surface.alpha = base.a;
+		surface.metallic = GetMetallic(config);
+		surface.occlusion = GetOcclusion(config);
+		surface.smoothness = GetSmoothness(config);
+		surface.fresnelStrength = GetFresnel(config);
+		surface.dither = InterleavedGradientNoise(config.fragment.positionSS, 0);
+		surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
+		#if defined(_PREMULTIPLY_ALPHA)
+			BRDF brdf = GetBRDF(surface, true);
+		#else
+			BRDF brdf = GetBRDF(surface);
+		#endif
+		GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
+		float3 color = GetLighting(surface, brdf, gi);
+		color += GetEmission(config);
+		return float4(color, GetFinalAlpha(surface.alpha));
+	}
 #endif
 
 #endif

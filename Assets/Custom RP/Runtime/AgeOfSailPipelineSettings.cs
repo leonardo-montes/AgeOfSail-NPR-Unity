@@ -6,6 +6,7 @@ using UnityEngine;
 public class AgeOfSailPipelineSettings
 {
 	public bool usePipeline = false;
+	public bool useColorLights = false;
 	public Shader shader = null;
 
     [Min(1.0f)] public float blurPassDownsample = 1.0f;
