@@ -41,3 +41,5 @@ The rest of the code, mostly the modified elements from the Rendering Pipeline, 
 - [X] Colored lights.
 - [ ] Simplified shading model.
 - [ ] MetaTexture distance fade zoom support.
+
+![Screenshot of colored lights in Unity.](/screenshotColoredLights.jpg)
