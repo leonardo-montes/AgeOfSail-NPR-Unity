@@ -6,10 +6,6 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 
 ![Screenshot of the result in Unity.](/screenshot.jpg)
 
-**Disclaimer:**
-I mostly wanted to implement and share the MetaTexture so I tried to comment it as well as possible to link the shader code to the original paper.
-The rest of the code, mostly the modified elements from the Rendering Pipeline, is very messy and was built for quickly to showcase possible effects. It might get fixed in the future though.
-
 **Implementation _(based on the Paper)_:**
 - 3. MetaTexture
     - [x] 3.1. Texture scales and blend coefficients
@@ -38,8 +34,8 @@ The rest of the code, mostly the modified elements from the Rendering Pipeline, 
 **Improvements:**
 - [X] Mesh importer that creates proper normals for edge inflation (especially for facetted meshes with non smooth normals).
 - [X] Mesh importer support for open meshes (like planes, tubes, etc.).
-- [X] Colored lights.
-- [ ] Simplified shading model.
+- [ ] Colored lights.
+- [ ] Support transparency.
 - [ ] MetaTexture distance fade zoom support.
 
 ![Screenshot of colored lights in Unity.](/screenshotColoredLights.jpg)

@@ -14,12 +14,13 @@ Material:
   m_ValidKeywords:
   - _COMPENSATE_DISTANCE
   - _COMPENSATE_SKEW
+  - _RECEIVE_SHADOWS
   - _USE_SMOOTH_UV_GRADIENT
   m_InvalidKeywords:
   - _EDGEBREAKUP_ON
-  - _RECEIVE_SHADOWS
   - _SHADOWS_ON
   - _USE_SKEWED_META_TEXTURE
+  - _WARP_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -134,6 +135,10 @@ Material:
     - _UseAnimatedLineBoil: 0
     - _UseSkewedMetaTexture: 1
     - _UseSmoothUVGradient: 1
+    - _Warp: 1
+    - _WarpDistanceFadeMultiplier: 1
+    - _WarpSkew: 4
+    - _WarpWidthMultiplier: 1
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.6, g: 0.46274513, b: 0.37647063, a: 1}

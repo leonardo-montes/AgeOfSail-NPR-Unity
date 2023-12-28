@@ -139,7 +139,7 @@ Material:
     - _BaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _BaseColorOverlay: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     - _BaseShadowedColor: {r: 0.13608047, g: 0.1816713, b: 0.20754719, a: 0.9098039}
-    - _Color: {r: 0.6, g: 0.46274507, b: 0.3764706, a: 1}
+    - _Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Test: {r: 1, g: 1, b: 1, a: 1}
     - _WorldSpaceUVGradient: {r: 2, g: 4, b: 0, a: 0}
