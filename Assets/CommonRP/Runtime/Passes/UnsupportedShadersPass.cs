@@ -22,9 +22,11 @@ public class UnsupportedShadersPass
 	private static Material m_errorMaterial;
 
 	private RendererListHandle m_list;
+	private TextureHandle m_colorAttachment, m_depthAttachment;
 
 	private void Render(RenderGraphContext context)
 	{
+		context.cmd.SetRenderTarget(m_colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_depthAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 		context.cmd.DrawRendererList(m_list);
 		context.renderContext.ExecuteCommandBuffer(context.cmd);
 		context.cmd.Clear();
@@ -32,7 +34,7 @@ public class UnsupportedShadersPass
 #endif
 
 	[Conditional("UNITY_EDITOR")]
-	public static void Record(RenderGraph renderGraph, Camera camera, CullingResults cullingResults)
+	public static void Record(RenderGraph renderGraph, Camera camera, CullingResults cullingResults, in TextureHandle colorAttachment, in TextureHandle depthAttachment)
 	{
 #if UNITY_EDITOR
 		using RenderGraphBuilder builder = renderGraph.AddRenderPass(Sampler.name, out UnsupportedShadersPass pass, Sampler);
@@ -48,6 +50,9 @@ public class UnsupportedShadersPass
 				overrideMaterial = m_errorMaterial,
 				renderQueueRange = RenderQueueRange.all
 			}));
+
+		pass.m_colorAttachment = builder.ReadWriteTexture(colorAttachment);
+		pass.m_depthAttachment = builder.ReadWriteTexture(depthAttachment);
 
 		builder.SetRenderFunc<UnsupportedShadersPass>((pass, context) => pass.Render(context));
 #endif

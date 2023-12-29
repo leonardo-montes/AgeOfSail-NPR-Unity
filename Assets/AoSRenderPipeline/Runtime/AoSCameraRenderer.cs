@@ -63,7 +63,7 @@ namespace AoS.RenderPipeline
 				TransparentPass.Record(renderGraph, camera, cullingResults, textures.colorAttachment, textures.depthAttachment);
 
 				// Unsupported shaders pass
-				UnsupportedShadersPass.Record(renderGraph, camera, cullingResults);
+				UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, textures.colorAttachment, textures.depthAttachment);
 
 				// Final color pass
 				FinalColorPass.Record(renderGraph, settings, textures);

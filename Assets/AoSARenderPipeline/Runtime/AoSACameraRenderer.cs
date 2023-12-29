@@ -59,7 +59,7 @@ namespace AoSA.RenderPipeline
 				TransparentPass.Record(renderGraph, camera, cullingResults, textures.litColorBuffer, textures.depthAttachment);
 
 				// Unsupported shaders pass
-				UnsupportedShadersPass.Record(renderGraph, camera, cullingResults);
+				UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, textures.litColorBuffer, textures.depthAttachment);
 
 				// Final compositing pass
 				FinalCompositingPass.Record(renderGraph, settings, textures);
