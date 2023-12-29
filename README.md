@@ -24,7 +24,7 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 - 5. The Rendering Pipeline
     - [x] Warp Pass
     - [X] Shadow Pass
-    - [X] \(WIP) Blur Pass
+    - [ ] \(WIP) Blur Pass
     - [X] 5.1. Shadow shapes, inner glow, and indication
     - [X] 5.2. Color control
 
@@ -34,9 +34,10 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 **Additions:**
 - [X] Mesh importer that creates proper normals for edge inflation (especially for facetted meshes with non smooth normals).
 - [X] Mesh importer support for open meshes (like planes, tubes, etc.).
-- [X] Alternative render pipeline supporting colored lights.
+- [X] Alternative render pipeline (AoSA RP) supporting colored lights.
     - supports up to 9 lights (directional, point, and spot) with blurred shadows and specular highlights.
-- [ ] Support lit transparency.
-- [ ] MetaTexture distance fade zoom support.
+- [ ] Support for lit transparency.
+- [ ] Support zoom when doing metaTexture's distance fade (especially for the warp pass).
+- [ ] Replace test textures with ones resembling the paper's textures.
 
 ![Screenshot of colored lights in Unity.](/screenshotColoredLights.jpg)
