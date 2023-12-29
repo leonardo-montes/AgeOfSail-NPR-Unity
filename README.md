@@ -31,11 +31,12 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 - 6. Applications
     - _Not planned._
 
-**Improvements:**
+**Additions:**
 - [X] Mesh importer that creates proper normals for edge inflation (especially for facetted meshes with non smooth normals).
 - [X] Mesh importer support for open meshes (like planes, tubes, etc.).
-- [ ] Colored lights.
-- [ ] Support transparency.
+- [X] Alternative render pipeline supporting colored lights.
+    - supports up to 9 lights (directional, point, and spot) with blurred shadows and specular highlights.
+- [ ] Support lit transparency.
 - [ ] MetaTexture distance fade zoom support.
 
 ![Screenshot of colored lights in Unity.](/screenshotColoredLights.jpg)

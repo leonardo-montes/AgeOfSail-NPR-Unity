@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0829e1f9e0f7634a956fb81610416c0, type: 3}
+  m_Name: AoSA-RP
+  m_EditorClassIdentifier: 
+  settings:
+    useSRPBatcher: 1
+    shadows:
+      maxDistance: 50
+      distanceFade: 0.1
+      directional:
+        atlasSize: 1024
+        filter: 0
+        cascadeCount: 4
+        cascadeRatio1: 0.1
+        cascadeRatio2: 0.25
+        cascadeRatio3: 0.5
+        cascadeFade: 0.1
+        cascadeBlend: 0
+      other:
+        atlasSize: 1024
+        filter: 0
+    shader: {fileID: 4800000, guid: 0ec62775f58ec37408409b24561faa7f, type: 3}
+    warpTexture: {fileID: 2800000, guid: 9c7cfe9bf30aafb4ba39183305345112, type: 3}
+    warpGlobalScale: 200
+    warpGlobalDistanceFade: 0.1
+    warpWidth: 0.003
+    blurRadius: 0.001
+    downsampleAmount: 2
+    shadowThreshold: 0.5
+    shadowThresholdSoftness: 0.3

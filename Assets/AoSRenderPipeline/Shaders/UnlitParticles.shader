@@ -1,6 +1,7 @@
-﻿Shader "Custom RP/Particles/Unlit" {
-	
-	Properties {
+﻿Shader "AoS RP/Particles/Unlit"
+{
+	Properties
+	{
 		_BaseMap("Texture", 2D) = "white" {}
 		[HDR] _BaseColor("Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		[Toggle(_VERTEX_COLORS)] _VertexColors ("Vertex Colors", Float) = 0
@@ -27,13 +28,15 @@
 		[Enum(Off, 0, On, 1)] _ZWrite ("Z Write", Float) = 1
 	}
 	
-	SubShader {
+	SubShader
+	{
 		HLSLINCLUDE
 		#include "../ShaderLibrary/Common.hlsl"
 		#include "UnlitInput.hlsl"
 		ENDHLSL
 
-		Pass {
+		Pass
+		{
 			Blend [_SrcBlend] [_DstBlend], One OneMinusSrcAlpha
 
 			ZWrite [_ZWrite]
@@ -53,10 +56,9 @@
 			ENDHLSL
 		}
 
-		Pass {
-			Tags {
-				"LightMode" = "DepthPass"
-			}
+		Pass
+		{
+			Tags { "LightMode" = "ShadowCaster" }
 
 			ColorMask 0
 

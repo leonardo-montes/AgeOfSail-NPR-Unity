@@ -3,7 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
-#include "UnityInput.hlsl"
+#include "Assets/CommonRP/ShaderLibrary/UnityInput.hlsl"
 
 #define UNITY_MATRIX_M unity_ObjectToWorld
 #define UNITY_MATRIX_I_M unity_WorldToObject
@@ -38,7 +38,7 @@ float OrthographicDepthBufferToLinear (float rawDepth)
 	return (_ProjectionParams.z - _ProjectionParams.y) * rawDepth + _ProjectionParams.y;
 }
 
-#include "Fragment.hlsl"
+#include "Assets/CommonRP/ShaderLibrary/Fragment.hlsl"
 
 float Square (float x)
 {

@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: PaperSceneFloor
-  m_Shader: {fileID: 4800000, guid: d2c448af154f94dda8a9c42d2b0171f0, type: 3}
+  m_Shader: {fileID: 4800000, guid: 7ad597fd64aa3784dba0fbf8fe255932, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:

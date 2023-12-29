@@ -44,7 +44,7 @@
 			#pragma vertex WarpPassVertex
 			#pragma fragment WarpPassFragment
 			#define _WARP_PASS
-			#include "../ShaderLibrary/MetaTexture.hlsl"
+			#include "Assets/CommonRP/ShaderLibrary/MetaTexture.hlsl"
 			#include "UnlitInput.hlsl"
 			#include "WarpPass.hlsl"
 			ENDHLSL
