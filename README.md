@@ -36,7 +36,6 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 - [X] Mesh importer support for open meshes (like planes, tubes, etc.).
 - [X] Alternative render pipeline (AoSA RP) supporting colored lights.
     - supports up to 9 lights (directional, point, and spot) with blurred shadows and specular highlights.
-- [ ] Support zoom when doing metaTexture's distance fade (especially for the warp pass).
 - [ ] Replace test textures with ones resembling the paper's textures.
 
 ![Screenshot of colored lights in Unity.](/screenshotColoredLights.jpg)
