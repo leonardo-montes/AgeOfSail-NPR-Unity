@@ -24,7 +24,7 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 - 5. The Rendering Pipeline
     - [x] Warp Pass
     - [X] Shadow Pass
-    - [ ] \(WIP) Blur Pass
+    - [X] Blur Pass
     - [X] 5.1. Shadow shapes, inner glow, and indication
     - [X] 5.2. Color control
 

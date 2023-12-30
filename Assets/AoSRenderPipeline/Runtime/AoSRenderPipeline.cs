@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
@@ -8,7 +7,7 @@ namespace AoS.RenderPipeline
 {
 	public partial class AoSRenderPipeline : UnityEngine.Rendering.RenderPipeline
 	{
-		public enum Pass { Copy, BlurHorizontal, BlurVertical, FinalShadowPass, FinalColorPass }
+		public enum Pass { Copy, Downsample, BlurHorizontal, BlurVertical, FinalShadowPass, FinalColorPass }
 
 		private readonly CameraRenderer m_renderer;
 		private readonly AoSRenderPipelineSettings m_settings;

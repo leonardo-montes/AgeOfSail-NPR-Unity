@@ -8,17 +8,21 @@ namespace AoS.RenderPipeline
 	{
 		private static readonly ProfilingSampler m_sampler = new("Final Color Pass");
 
+		private static int WarpBloomId = Shader.PropertyToID("_WarpBloom");
+
 		private static int Source0Id = Shader.PropertyToID("_Source0");
 		private static int Source1Id = Shader.PropertyToID("_Source1");
 		private static int Source2Id = Shader.PropertyToID("_Source2");
 
-		private TextureHandle m_colorAttachment, m_warpBuffer, m_blurBuffer;
+		private TextureHandle m_colorAttachment, m_warpBuffer, m_finalShadowBuffer;
 		private AoSRenderPipelineSettings m_settings;
 
 		void Render(RenderGraphContext context)
 		{
+			context.cmd.SetGlobalFloat(WarpBloomId, m_settings.warpBloom ? 1.0f : 0.0f);
+
 			context.cmd.SetGlobalTexture(Source1Id, m_warpBuffer);
-			context.cmd.SetGlobalTexture(Source2Id, m_blurBuffer);
+			context.cmd.SetGlobalTexture(Source2Id, m_finalShadowBuffer);
 			Draw(context.cmd, m_colorAttachment, BuiltinRenderTextureType.CameraTarget, AoSRenderPipeline.Pass.FinalColorPass);
 
 			context.renderContext.ExecuteCommandBuffer(context.cmd);
@@ -38,7 +42,7 @@ namespace AoS.RenderPipeline
 			pass.m_settings = settings;
 			pass.m_colorAttachment = builder.ReadTexture(textures.colorAttachment);
 			pass.m_warpBuffer = builder.ReadTexture(textures.warpColor);
-			pass.m_blurBuffer = builder.ReadTexture(textures.blurBuffer);
+			pass.m_finalShadowBuffer = builder.ReadTexture(textures.finalShadowBuffer);
 			builder.SetRenderFunc<FinalColorPass>((pass, context) => pass.Render(context));
 		}
 	}

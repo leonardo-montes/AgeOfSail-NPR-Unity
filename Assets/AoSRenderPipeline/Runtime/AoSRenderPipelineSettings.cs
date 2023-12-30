@@ -19,12 +19,17 @@ namespace AoS.RenderPipeline
         public float warpWidth = 1.0f;
 
         [Header("Blur pass settings")]
-        public float blurRadius = 1.0f;
-        public float downsampleAmount = 1.0f;
+        [Range(1.0f, 16.0f)] public float softBlurDownsample = 4;
+        [Range(2.0f, 16.0f)] public float heavyBlurDownsample = 8;
 
         [Header("Final shadow pass settings")]
-        public float shadowThreshold = 1.0f;
-        public float shadowThresholdSoftness = 1.0f;
+        [Min(0)] public int shadowStepCount = 3;
+        [Range(0.0f, 1.0f)] public float shadowThreshold = 0.5f;
+        [Range(0.0f, 1.0f)] public float shadowThresholdSoftness = 0.3f;
+        [Range(0.0f, 1.0f)] public float shadowInnerGlow = 0.3f;
+
+        [Header("Final color pass settings")]
+        public bool warpBloom = false;
 
         [NonSerialized] private Material m_material;
         public Material Material

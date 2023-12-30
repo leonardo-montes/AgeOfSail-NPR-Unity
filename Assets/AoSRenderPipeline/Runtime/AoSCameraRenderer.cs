@@ -41,7 +41,7 @@ namespace AoS.RenderPipeline
 				ShadowTextures shadowTextures = DepthPass.Record(renderGraph, cullingResults, camera, settings.shadows);
 
 				// Setup
-				CameraRendererTextures textures = SetupPass.Record(renderGraph, useHDR, bufferSize, camera);
+				CameraRendererTextures textures = SetupPass.Record(renderGraph, useHDR, bufferSize, camera, settings);
 
 				// Warp pass
 				WarpPass.Record(renderGraph, camera, cullingResults, settings, textures);
@@ -53,7 +53,7 @@ namespace AoS.RenderPipeline
 				BlurPass.Record(renderGraph, bufferSize, useHDR, settings, textures, listHandle);
 
 				// Final shadow pass
-				FinalShadowPass.Record(renderGraph, bufferSize, useHDR, settings, textures);
+				FinalShadowPass.Record(renderGraph, settings, textures);
 
 				// Color pass
 				ColorPass.Record(renderGraph, camera, cullingResults, bufferSize, useHDR, settings, textures);

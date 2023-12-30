@@ -34,7 +34,6 @@ Varyings ShadowPassVertex (Attributes input)
 }
 
 TEXTURE2D(_FinalShadowBuffer);
-TEXTURE2D(_BlurBuffer);
 
 // From https://www.ryanjuckett.com/photoshop-blend-modes-in-hlsl/
 float BlendMode_Overlay(float base, float blend)
@@ -65,22 +64,20 @@ float4 ShadowPassFragment (Varyings input) : SV_TARGET
 	#if defined(_CLIPPING)
 		clip(base.a - GetCutoff(config));
 	#endif
-	
-	float4 baseShadowed = GetBaseShadowed(config);
 
 	#if defined(_UNLIT)
-		float3 color = lerp(baseShadowed.rgb, base.rgb, 1.0 - baseShadowed.a);
+		float3 color = base.rgb;
 	#else
 		float2 screenUV = input.screenUV.xy / input.screenUV.w;
-
-		float4 blur = SAMPLE_TEXTURE2D_LOD(_BlurBuffer, sampler_linear_clamp, screenUV, 0);
 		float4 finalShadow = SAMPLE_TEXTURE2D_LOD(_FinalShadowBuffer, sampler_linear_clamp, screenUV, 0);
+	
+		float4 baseShadowed = GetBaseShadowed(config);
 		
 		// We use the Final Shadow Pass red channel to blend between these lit and shadowed texture maps on all objects.
-		float3 color = lerp(baseShadowed.rgb, base.rgb, max(1.0 - baseShadowed.a, finalShadow.r));
+		float3 color = lerp(baseShadowed.rgb, base.rgb, finalShadow.r);
 
 		// Specular
-		color = lerp(color, 1.0, step(0.8, finalShadow.g));
+		color = lerp(color, 1.0, finalShadow.b);
 	#endif
 
 	// Overlay

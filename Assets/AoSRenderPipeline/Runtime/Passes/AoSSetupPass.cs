@@ -22,13 +22,13 @@ namespace AoS.RenderPipeline
 			cmd.Clear();
 		}
 
-		public static CameraRendererTextures Record(RenderGraph renderGraph, bool useHDR, Vector2Int attachmentSize, Camera camera)
+		public static CameraRendererTextures Record(RenderGraph renderGraph, bool useHDR, Vector2Int attachmentSize, Camera camera, AoSRenderPipelineSettings settings)
 		{
 			using RenderGraphBuilder builder = renderGraph.AddRenderPass(Sampler.name, out SetupPass pass, Sampler);
 			pass.m_attachmentSize = attachmentSize;
 			pass.m_camera = camera;
 
-			TextureHandle colorAttachment, depthAttachment, warpColor, warpDepth, blurBuffer;
+			TextureHandle colorAttachment, depthAttachment, warpColor, warpDepth, heavyBlurBuffer, softBlurBuffer, finalShadowBuffer;
 			TextureDesc desc;
 
 			desc = new TextureDesc(attachmentSize.x, attachmentSize.y)
@@ -53,17 +53,31 @@ namespace AoS.RenderPipeline
 			desc.name = "Warp Pass Depth";
 			warpDepth = renderGraph.CreateTexture(desc);
 
+			desc = new TextureDesc(Mathf.CeilToInt(attachmentSize.x / settings.heavyBlurDownsample), Mathf.CeilToInt(attachmentSize.y / settings.heavyBlurDownsample))
+			{
+				colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR),
+				name = "Heavy Blur Buffer"
+			};
+			heavyBlurBuffer = renderGraph.CreateTexture(desc);
+
+			desc = new TextureDesc(Mathf.CeilToInt(attachmentSize.x / settings.softBlurDownsample), Mathf.CeilToInt(attachmentSize.y / settings.softBlurDownsample))
+			{
+				colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR),
+				name = "Soft Blur Buffer"
+			};
+			softBlurBuffer = renderGraph.CreateTexture(desc);
+
 			desc = new TextureDesc(attachmentSize.x, attachmentSize.y)
 			{
 				colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR),
-				name = "Blur Buffer"
+				name = "Final Shadow Buffer"
 			};
-			blurBuffer = renderGraph.CreateTexture(desc);
+			finalShadowBuffer = renderGraph.CreateTexture(desc);
 
 			builder.AllowPassCulling(false);
 			builder.SetRenderFunc<SetupPass>((pass, context) => pass.Render(context));
 
-			return new CameraRendererTextures(colorAttachment, depthAttachment, warpColor, warpDepth, blurBuffer);
+			return new CameraRendererTextures(colorAttachment, depthAttachment, warpColor, warpDepth, heavyBlurBuffer, softBlurBuffer, finalShadowBuffer);
 		}
 	}
 }

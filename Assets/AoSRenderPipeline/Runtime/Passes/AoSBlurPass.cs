@@ -10,26 +10,25 @@ namespace AoS.RenderPipeline
 
 		private static int TempRT0Id = Shader.PropertyToID("_TempRT0");
 		private static int TempRT1Id = Shader.PropertyToID("_TempRT1");
-		private static int SourceId = Shader.PropertyToID("_Source0");
+		private static int Source0Id = Shader.PropertyToID("_Source0");
 
-		private static int BlurRadiusId = Shader.PropertyToID("_BlurRadius");
-
-		private TextureHandle m_colorAttachment, m_blurBuffer;
+		private TextureHandle m_colorAttachment, m_heavyBlurBuffer, m_softBlurBuffer;
 		private Vector2Int m_bufferSize;
 		private bool m_useHDR;
 		private AoSRenderPipelineSettings m_settings;
 
 		private void Render(RenderGraphContext context)
 		{
-			context.cmd.GetTemporaryRT(TempRT0Id, Mathf.CeilToInt(m_bufferSize.x / m_settings.downsampleAmount), Mathf.CeilToInt(m_bufferSize.y / m_settings.downsampleAmount), 0, FilterMode.Point, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
-			context.cmd.GetTemporaryRT(TempRT1Id, Mathf.CeilToInt(m_bufferSize.x / m_settings.downsampleAmount), Mathf.CeilToInt(m_bufferSize.y / m_settings.downsampleAmount), 0, FilterMode.Point, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+			context.cmd.GetTemporaryRT(TempRT0Id, Mathf.CeilToInt(m_bufferSize.x / m_settings.softBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.softBlurDownsample), 0, FilterMode.Bilinear, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+			context.cmd.GetTemporaryRT(TempRT1Id, Mathf.CeilToInt(m_bufferSize.x / m_settings.heavyBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.heavyBlurDownsample), 0, FilterMode.Bilinear, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
 
-			context.cmd.SetGlobalFloat(BlurRadiusId, m_settings.blurRadius);
-
-			Draw(context.cmd, m_colorAttachment, TempRT0Id, AoSRenderPipeline.Pass.BlurHorizontal);
-			Draw(context.cmd, TempRT0Id,         TempRT1Id, AoSRenderPipeline.Pass.BlurVertical);
-
-			Draw(context.cmd, TempRT1Id, m_blurBuffer, AoSRenderPipeline.Pass.Copy);
+			Draw(context.cmd, m_colorAttachment, m_softBlurBuffer, AoSRenderPipeline.Pass.Downsample);
+			Draw(context.cmd, m_softBlurBuffer, TempRT0Id, AoSRenderPipeline.Pass.BlurHorizontal);
+			Draw(context.cmd, TempRT0Id, m_softBlurBuffer, AoSRenderPipeline.Pass.BlurVertical);
+			
+			Draw(context.cmd, m_softBlurBuffer, m_heavyBlurBuffer, AoSRenderPipeline.Pass.Downsample);
+			Draw(context.cmd, m_heavyBlurBuffer, TempRT1Id, AoSRenderPipeline.Pass.BlurHorizontal);
+			Draw(context.cmd, TempRT1Id, m_heavyBlurBuffer, AoSRenderPipeline.Pass.BlurVertical);
 
 			context.cmd.ReleaseTemporaryRT(TempRT0Id);
 			context.cmd.ReleaseTemporaryRT(TempRT1Id);
@@ -40,7 +39,7 @@ namespace AoS.RenderPipeline
 
 		private void Draw(CommandBuffer buffer, RenderTargetIdentifier from, RenderTargetIdentifier to, AoSRenderPipeline.Pass pass)
 		{
-			buffer.SetGlobalTexture(SourceId, from);
+			buffer.SetGlobalTexture(Source0Id, from);
 			buffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 			buffer.DrawProcedural(Matrix4x4.identity, m_settings.Material, (int)pass, MeshTopology.Triangles, 3);
 		}
@@ -52,7 +51,8 @@ namespace AoS.RenderPipeline
 			pass.m_useHDR = useHDR;
 			pass.m_settings = settings;
 			pass.m_colorAttachment = builder.ReadTexture(textures.colorAttachment);
-			pass.m_blurBuffer = builder.WriteTexture(textures.blurBuffer);
+			pass.m_heavyBlurBuffer = builder.ReadWriteTexture(textures.heavyBlurBuffer);
+			pass.m_softBlurBuffer = builder.ReadWriteTexture(textures.softBlurBuffer);
 			builder.DependsOn(listHandle);
 			builder.SetRenderFunc<BlurPass>((pass, context) => pass.Render(context));
 		}
