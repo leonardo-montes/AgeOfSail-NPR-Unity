@@ -18,6 +18,13 @@ namespace AoSA.RenderPipeline
 			if (!camera.TryGetCullingParameters(out ScriptableCullingParameters scriptableCullingParameters))
 				return;
 
+			Color overlayColor;
+			float saturation;
+			if (camera.TryGetComponent(out AoSACameraSettings cameraSettings))
+				cameraSettings.GetSettings(out overlayColor, out saturation);
+			else
+				AoSACameraSettings.GetDefaultSettings(out overlayColor, out saturation);
+
 			scriptableCullingParameters.shadowDistance = Mathf.Min(settings.shadows.maxDistance, camera.farClipPlane);
 			CullingResults cullingResults = context.Cull(ref scriptableCullingParameters);
 
@@ -62,7 +69,7 @@ namespace AoSA.RenderPipeline
 				UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, textures.litColorBuffer, textures.depthAttachment);
 
 				// Final compositing pass
-				FinalCompositingPass.Record(renderGraph, settings, textures);
+				FinalCompositingPass.Record(renderGraph, settings, overlayColor, saturation, textures);
 
 				// Gizmos pass
 				GizmosPass.Record(renderGraph, textures.depthAttachment, camera);

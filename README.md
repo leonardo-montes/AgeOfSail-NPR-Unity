@@ -35,7 +35,7 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 - [X] Mesh importer that creates proper normals for edge inflation (especially for facetted meshes with non smooth normals).
 - [X] Mesh importer support for open meshes (like planes, tubes, etc.).
 - [X] Alternative render pipeline (AoSA RP) supporting colored lights.
-    - supports up to 9 lights (directional, point, and spot) with blurred shadows and specular highlights.
+    - supports up to 10 lights (directional, point, and spot) with blurred shadows and specular highlights.
 - [ ] Replace test textures with ones resembling the paper's textures.
 
 ![Screenshot of colored lights in Unity.](/screenshotColoredLights.jpg)

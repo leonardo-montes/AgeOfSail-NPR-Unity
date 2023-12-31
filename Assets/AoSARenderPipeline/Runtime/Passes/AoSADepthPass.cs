@@ -9,7 +9,7 @@ namespace AoSA.RenderPipeline
 	{
 		private static readonly ProfilingSampler Sampler = new("Depth Pass");
 
-		private const int MaxLightCount = 9; // 8 max RT, 3 already used, so 5 RT * 4 channels - 1 (for thresholds) = 19
+		private const int MaxLightCount = 10; // 8 max RT, 3 already used, so 5 RT * 2 channels = 10
 		private const int MaxDirLightCount = 4;
 		private const int MaxOtherLightCount = 18;
 

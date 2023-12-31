@@ -8,24 +8,24 @@ namespace AoSA.RenderPipeline
 	{
 		private static readonly ProfilingSampler Sampler = new("Blur Pass");
 
-		private static int[] TempRTsId = new int[5]
+		private static int[] TempRTsId = new int[6]
 		{
 			Shader.PropertyToID("_TempRT0"),
 			Shader.PropertyToID("_TempRT1"),
 			Shader.PropertyToID("_TempRT2"),
 			Shader.PropertyToID("_TempRT3"),
-			Shader.PropertyToID("_TempRT4")
+			Shader.PropertyToID("_TempRT4"),
+			Shader.PropertyToID("_TempRT5")
 		};
-		private static int[] SourceIds = new int[5]
+		private static int[] SourceIds = new int[6]
 		{
 			Shader.PropertyToID("_Source0"),
 			Shader.PropertyToID("_Source1"),
 			Shader.PropertyToID("_Source2"),
 			Shader.PropertyToID("_Source3"),
-			Shader.PropertyToID("_Source4")
+			Shader.PropertyToID("_Source4"),
+			Shader.PropertyToID("_Source5")
 		};
-
-		private static int BlurRadiusId = Shader.PropertyToID("_BlurRadius");
 
 		private TextureHandle[] m_shadowBuffers, m_softBlurBuffers, m_heavyBlurBuffers;
 		private Vector2Int m_bufferSize;

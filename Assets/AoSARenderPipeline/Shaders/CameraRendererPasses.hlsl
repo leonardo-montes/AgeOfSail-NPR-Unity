@@ -44,7 +44,8 @@ Varyings DefaultPassVertex (uint vertexID : SV_VertexID)
 		vertexID <= 1 ? 0.0 : 2.0,
 		vertexID == 1 ? 2.0 : 0.0
 	);
-	if (_ProjectionParams.x < 0.0) {
+	if (_ProjectionParams.x < 0.0)
+	{
 		output.screenUV.y = 1.0 - output.screenUV.y;
 	}
 	return output;
@@ -186,7 +187,7 @@ void SampleTextures(in TEXTURE2D(softBlurSource), in TEXTURE2D(heavyBlurSource),
 }
 
 void SampleTextures(in TEXTURE2D(soft0), in TEXTURE2D(heavy0), in TEXTURE2D(soft1), in TEXTURE2D(heavy1), in TEXTURE2D(soft2), in TEXTURE2D(heavy2),
-	in TEXTURE2D(soft3), in TEXTURE2D(heavy3), in TEXTURE2D(soft4), in TEXTURE2D(heavy4),
+	in TEXTURE2D(soft3), in TEXTURE2D(heavy3), in TEXTURE2D(soft4), in TEXTURE2D(heavy4), in TEXTURE2D(soft5), in TEXTURE2D(heavy5),
 	out float2 shadows[MAX_LIGHT_COUNT], out float speculars[MAX_LIGHT_COUNT], out float blooms[MAX_LIGHT_COUNT], in float2 uv)
 {
 	int i;
@@ -198,20 +199,16 @@ void SampleTextures(in TEXTURE2D(soft0), in TEXTURE2D(heavy0), in TEXTURE2D(soft
 		blooms[i] = 0.0; 
 	}
 
-	float4 softBlur = GetSource(soft0, uv);
-	float4 heavyBlur = GetSource(heavy0, uv);
-	shadows[0] = float2(softBlur.b, heavyBlur.b);
-	speculars[0] = step(0.5, softBlur.a);
-	blooms[0] = heavyBlur.a + 0.5 * softBlur.a;
-
-	if (_TotalLightCount > 1)
-		SampleTextures(soft1, heavy1, shadows, speculars, blooms, uv, 1);
-	if (_TotalLightCount > 3)
-		SampleTextures(soft2, heavy2, shadows, speculars, blooms, uv, 3);
-	if (_TotalLightCount > 5)
-		SampleTextures(soft3, heavy3, shadows, speculars, blooms, uv, 5);
-	if (_TotalLightCount > 7)
-		SampleTextures(soft4, heavy4, shadows, speculars, blooms, uv, 7);
+	if (_TotalLightCount > 0)
+		SampleTextures(soft0, heavy0, shadows, speculars, blooms, uv, 0);
+	if (_TotalLightCount > 2)
+		SampleTextures(soft1, heavy1, shadows, speculars, blooms, uv, 2);
+	if (_TotalLightCount > 4)
+		SampleTextures(soft2, heavy2, shadows, speculars, blooms, uv, 4);
+	if (_TotalLightCount > 6)
+		SampleTextures(soft3, heavy3, shadows, speculars, blooms, uv, 6);
+	if (_TotalLightCount > 8)
+		SampleTextures(soft4, heavy4, shadows, speculars, blooms, uv, 8);
 }
 
 float SteppedGradient(float value, float threshold, float softness, float stepCount)
@@ -220,12 +217,12 @@ float SteppedGradient(float value, float threshold, float softness, float stepCo
 	return saturate(floor(thresholdedValue * stepCount) / stepCount);
 }
 
-void ApplyColoredShadows(inout float3 color, in float4 shadowedColor, in float3 litColor,
+void ApplyColoredShadows(inout float3 color, in float3 shadowedColor, in float3 litColor,
 	in float2 shadows[MAX_LIGHT_COUNT], in float speculars[MAX_LIGHT_COUNT], in float breakup)
 {
 	if (_TotalLightCount <= 0)
 	{
-		color = shadowedColor.rgb;
+		color = shadowedColor;
 		return;
 	}
 
@@ -237,13 +234,102 @@ void ApplyColoredShadows(inout float3 color, in float4 shadowedColor, in float3 
 	float shadow = SteppedGradient(shadows[0].r, threshold, thresholdSoftness, stepCount);
 	shadow = lerp((1.0 - shadows[0].g * innerGlow * 2.0) * shadow, shadow + (1.0 - shadows[0].g) * (1.0 - shadow) * innerGlow, _LightColors[0].a);
 
-	color = lerp(color, litColor * _LightColors[0].rgb, shadow) + speculars[0] * _LightColors[0].rgb;
+	color = lerp(shadowedColor, litColor * _LightColors[0].rgb, shadow) + speculars[0] * _LightColors[0].rgb;
 
 	for (int i = 1; i < _TotalLightCount; ++i)
 	{
 		shadow = SteppedGradient(shadows[i].r, threshold, thresholdSoftness, stepCount);
 		shadow = lerp((1.0 - shadows[i].g * innerGlow * 2.0) * shadow, shadow + (1.0 - shadows[i].g) * (1.0 - shadow) * innerGlow, _LightColors[i].a);
 		color += litColor * _LightColors[i].rgb * shadow + speculars[i] * _LightColors[i].rgb;
+	}
+}
+
+struct CompositingBuffers
+{
+	float4 buffer0 : SV_TARGET0;
+	float4 buffer1 : SV_TARGET1;
+	float4 buffer2 : SV_TARGET2;
+	float4 buffer3 : SV_TARGET3;
+};
+
+CompositingBuffers CompositingPassFragment (Varyings input)
+{	
+	float4 litColor = GetSource(_Source0, input.screenUV);
+	float4 shadowedColor = GetSource(_Source1, input.screenUV);
+	
+	float breakup = shadowedColor.a;
+
+	float4 overlay = 0.5;
+	float saturation = 1.0;
+
+	float2 shadows[MAX_LIGHT_COUNT];
+	float speculars[MAX_LIGHT_COUNT];
+	float blooms[MAX_LIGHT_COUNT];
+	SampleTextures(_Source2, _Source3, _Source4, _Source5, _Source6, _Source7, _Source8, _Source9, _Source10, _Source11, _Source12, _Source13, shadows, speculars, blooms, input.screenUV);
+
+	float3 color = 0.0;
+	ApplyColoredShadows(color.rgb, shadowedColor.rgb, litColor.rgb, shadows, speculars, breakup);
+
+	// Reapply sky
+	color = lerp(color, litColor.rgb, 1.0 - litColor.a);
+
+	CompositingBuffers buffers;
+	buffers.buffer0 = float4(color, 1.0);
+	buffers.buffer1 = float4(blooms[0], blooms[1], blooms[2], blooms[3]);
+	buffers.buffer2 = float4(blooms[4], blooms[5], blooms[6], blooms[7]);
+	buffers.buffer3 = float4(blooms[8], blooms[9], 0.0, 0.0);
+	return buffers;
+}
+
+
+// ------------------------------------------------------------------------------------------------------------
+// -                                       FINAL COMPOSITING PASS                                             -
+// ------------------------------------------------------------------------------------------------------------
+
+void SampleTexturesBloom(in TEXTURE2D(source), inout float blooms[MAX_LIGHT_COUNT], in float2 uv, in int startId)
+{
+	float4 bloom = GetSource(source, uv);
+
+	blooms[startId] = bloom.r;
+	blooms[startId + 1] = bloom.g;
+	blooms[startId + 2] = bloom.b;
+	blooms[startId + 3] = bloom.a;
+}
+
+void SampleTexturesBloomShort(in TEXTURE2D(source), inout float blooms[MAX_LIGHT_COUNT], in float2 uv, in int startId)
+{
+	float4 bloom = GetSource(source, uv);
+
+	blooms[startId] = bloom.r;
+	blooms[startId + 1] = bloom.g;
+}
+
+void SampleTexturesBloom(in TEXTURE2D(bloom0), in TEXTURE2D(bloom1), in TEXTURE2D(bloom2), out float blooms[MAX_LIGHT_COUNT], in float2 uv)
+{
+	int i;
+	[unroll]
+	for (i = 0; i < MAX_LIGHT_COUNT; ++i)
+	{
+		blooms[i] = 0.0; 
+	}
+	
+	SampleTexturesBloom(bloom0, blooms, uv, 0);
+	if (_TotalLightCount > 4)
+		SampleTexturesBloom(bloom1, blooms, uv, 4);
+	if (_TotalLightCount > 8)
+		SampleTexturesBloomShort(bloom2, blooms, uv, 8);
+}
+
+void ApplyColoredBlooms(inout float3 color, in float blooms[MAX_LIGHT_COUNT])
+{
+	if (_TotalLightCount <= 0)
+	{
+		return;
+	}
+
+	for (int i = 0; i < _TotalLightCount; ++i)
+	{
+		color += blooms[i] * _LightColors[i].rgb;
 	}
 }
 
@@ -266,94 +352,11 @@ float3 Saturation(float3 color, float saturation)
 	return luma.xxx + saturation.xxx * (color - luma.xxx);
 }
 
-struct CompositingBuffers
-{
-	float4 buffer0 : SV_TARGET0;
-	float4 buffer1 : SV_TARGET1;
-	float4 buffer2 : SV_TARGET2;
-};
-
-CompositingBuffers CompositingPassFragment (Varyings input)
-{	
-	float4 litColor = GetSource(_Source0, input.screenUV);
-	float4 shadowedColor = GetSource(_Source1, input.screenUV);
-	float4 overlay = GetSource(_Source2, input.screenUV);
-	
-	float2 shadowBuffer0 = GetSource(_Source3, input.screenUV).rg;
-	float breakup = shadowBuffer0.r;
-	float saturation = shadowedColor.a;
-
-	float2 shadows[MAX_LIGHT_COUNT];
-	float speculars[MAX_LIGHT_COUNT];
-	float blooms[MAX_LIGHT_COUNT];
-	SampleTextures(_Source4, _Source5, _Source6, _Source7, _Source8, _Source9, _Source10, _Source11, _Source12, _Source13, shadows, speculars, blooms, input.screenUV);
-
-	float3 color = 0.0;
-	ApplyColoredShadows(color.rgb, shadowedColor, litColor.rgb, shadows, speculars, breakup);
-
-	// Overlay
-	color.rgb = lerp(color, BlendMode_Overlay(color, overlay.rgb), overlay.a);
-
-	// Saturation
-	color.rgb = Saturation(color, saturation);
-
-	// Reapply sky
-	color = lerp(color, litColor.rgb, 1.0 - litColor.a);
-
-	CompositingBuffers buffers;
-	buffers.buffer0 = float4(color, blooms[0]);
-	buffers.buffer1 = float4(blooms[1], blooms[2], blooms[3], blooms[4]);
-	buffers.buffer2 = float4(blooms[5], blooms[6], blooms[7], blooms[8]);
-	return buffers;
-}
-
-
-// ------------------------------------------------------------------------------------------------------------
-// -                                       FINAL COMPOSITING PASS                                             -
-// ------------------------------------------------------------------------------------------------------------
-
-void SampleTexturesBloom(in TEXTURE2D(source), inout float blooms[MAX_LIGHT_COUNT], in float2 uv, in int startId)
-{
-	float4 bloom = GetSource(source, uv);
-
-	blooms[startId] = bloom.r;
-	blooms[startId + 1] = bloom.g;
-	blooms[startId + 2] = bloom.b;
-	blooms[startId + 3] = bloom.a;
-}
-
-void SampleTexturesBloom(in float bloom0, in TEXTURE2D(bloom1), in TEXTURE2D(bloom2), out float blooms[MAX_LIGHT_COUNT], in float2 uv)
-{
-	int i;
-	[unroll]
-	for (i = 0; i < MAX_LIGHT_COUNT; ++i)
-	{
-		blooms[i] = 0.0; 
-	}
-	
-	blooms[0] = bloom0;
-
-	if (_TotalLightCount > 1)
-		SampleTexturesBloom(bloom1, blooms, uv, 1);
-	if (_TotalLightCount > 5)
-		SampleTexturesBloom(bloom2, blooms, uv, 5);
-}
-
-void ApplyColoredBlooms(inout float3 color, in float blooms[MAX_LIGHT_COUNT])
-{
-	if (_TotalLightCount <= 0)
-	{
-		return;
-	}
-
-	for (int i = 0; i < _TotalLightCount; ++i)
-	{
-		color += blooms[i] * _LightColors[i].rgb;
-	}
-}
-
 float _WarpWidth;
 float _WarpBloom;
+
+float4 _Overlay;
+float _Saturation;
 
 float4 FinalCompositingPassFragment (Varyings input) : SV_TARGET
 {
@@ -368,8 +371,14 @@ float4 FinalCompositingPassFragment (Varyings input) : SV_TARGET
 	}
 	
 	float blooms[MAX_LIGHT_COUNT];
-	SampleTexturesBloom(color.a, _Source2, _Source3, blooms, input.screenUV + warp * _WarpBloom);
+	SampleTexturesBloom(_Source2, _Source3, _Source4, blooms, input.screenUV + warp * _WarpBloom);
 	ApplyColoredBlooms(color.rgb, blooms);
+
+	// Overlay
+	color.rgb = lerp(color.rgb, BlendMode_Overlay(color.rgb, _Overlay.rgb), _Overlay.a);
+
+	// Saturation
+	color.rgb = Saturation(color.rgb, _Saturation);
 
 	return color;
 }

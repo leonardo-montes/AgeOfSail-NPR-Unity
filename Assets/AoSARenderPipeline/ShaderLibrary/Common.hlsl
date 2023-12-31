@@ -86,6 +86,6 @@ inline float4 ComputeScreenPos (float4 pos)
     return o;
 }
 
-#define MAX_LIGHT_COUNT 9
+#define MAX_LIGHT_COUNT 10
 
 #endif

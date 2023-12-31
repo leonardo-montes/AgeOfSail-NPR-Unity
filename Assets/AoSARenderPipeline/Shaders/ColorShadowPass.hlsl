@@ -43,7 +43,6 @@ struct Buffers
 	float4 buffer4 : SV_TARGET4;
 	float4 buffer5 : SV_TARGET5;
 	float4 buffer6 : SV_TARGET6;
-	float4 buffer7 : SV_TARGET7;
 };
 
 Buffers ColorShadowPassFragment (Varyings input)
@@ -67,20 +66,14 @@ Buffers ColorShadowPassFragment (Varyings input)
 
 	float3 litColor = base.rgb;
 	float3 shadowedColor = GetBaseShadowed(config).rgb;
-	float4 overlay = GetBaseColorOverlay();
-	float saturation = GetBaseColorSaturation();
 
 	float breakupMap = GetBreakup(config);
-	float breakupMapResult = clamp(breakupMap, 0.3, 0.6) * step(0.01, breakupMap);
+	breakupMap = clamp(breakupMap, 0.3, 0.6) * step(0.01, breakupMap);
 	
-	// R: 'In the red channel, we render a simplified Lambert-shaded version of the objects, with cast shadows.'
-	// G: 'The green channel denotes objects that need to have screen-space lens effects, such as light sources or specular highlights'
-	/*color.rg = GetLighting(renderingLayerMask, normal, depth, position, dither, smoothness, viewDirection);
-	color.r -= breakupMap * 0.5 * (1.0 - color.r);*/
-	float shadows[9];
-	float speculars[9];
+	float shadows[MAX_LIGHT_COUNT];
+	float speculars[MAX_LIGHT_COUNT];
 	[unroll]
-	for (int i = 0; i < 9; ++i)
+	for (int i = 0; i < MAX_LIGHT_COUNT; ++i)
 	{
 		shadows[i] = 0.0;
 		speculars[i] = 0.0;
@@ -94,13 +87,12 @@ Buffers ColorShadowPassFragment (Varyings input)
 
 	Buffers buffers;
 	buffers.buffer0 = float4(litColor, GetFinalAlpha(base.a));
-	buffers.buffer1 = float4(shadowedColor, saturation);
-	buffers.buffer2 = overlay;
-	buffers.buffer3 = float4(breakupMapResult, 0.0, shadows[0], speculars[0]);
-	buffers.buffer4 = float4(shadows[1], speculars[1], shadows[2], speculars[2]);
-	buffers.buffer5 = float4(shadows[3], speculars[3], shadows[4], speculars[4]);
-	buffers.buffer6 = float4(shadows[5], speculars[5], shadows[6], speculars[6]);
-	buffers.buffer7 = float4(shadows[7], speculars[7], shadows[8], speculars[8]);
+	buffers.buffer1 = float4(shadowedColor, breakupMap);
+	buffers.buffer2 = float4(shadows[0], speculars[0], shadows[1], speculars[1]);
+	buffers.buffer3 = float4(shadows[2], speculars[2], shadows[3], speculars[3]);
+	buffers.buffer4 = float4(shadows[4], speculars[4], shadows[5], speculars[5]);
+	buffers.buffer5 = float4(shadows[6], speculars[6], shadows[7], speculars[7]);
+	buffers.buffer6 = float4(shadows[8], speculars[8], shadows[9], speculars[9]);
 	return buffers; 
 }
 

@@ -34,7 +34,7 @@ namespace AoSA.RenderPipeline
 
 		private AoSARenderPipelineSettings m_settings;
 		
-		private TextureHandle m_litColorBuffer, m_shadowedColorBuffer, m_overlaySaturationBuffer, m_shadowBuffer0;
+		private TextureHandle m_litColorBuffer, m_shadowedColorBuffer;
 		private TextureHandle[] m_softBlurBuffers, m_heavyBlurBuffers, m_bloomBuffers;
 		private Vector2Int m_bufferSize;
 		private bool m_useHDR;
@@ -52,12 +52,10 @@ namespace AoSA.RenderPipeline
 
 			context.cmd.SetGlobalTexture(SourceIds[0], TempRTId);
 			context.cmd.SetGlobalTexture(SourceIds[1], m_shadowedColorBuffer);
-			context.cmd.SetGlobalTexture(SourceIds[2], m_overlaySaturationBuffer);
-			context.cmd.SetGlobalTexture(SourceIds[3], m_shadowBuffer0);
 			for (int i = 0, j = 0; i < m_softBlurBuffers.Length; ++i, j += 2)
 			{
-				context.cmd.SetGlobalTexture(SourceIds[4 + j], m_softBlurBuffers[i]);
-				context.cmd.SetGlobalTexture(SourceIds[5 + j], m_heavyBlurBuffers[i]);
+				context.cmd.SetGlobalTexture(SourceIds[2 + j], m_softBlurBuffers[i]);
+				context.cmd.SetGlobalTexture(SourceIds[3 + j], m_heavyBlurBuffers[i]);
 			}
 
 			int bloomBufferCount = m_bloomBuffers != null ? m_bloomBuffers.Length : 0;
@@ -89,8 +87,6 @@ namespace AoSA.RenderPipeline
 			pass.m_useHDR = useHDR;
 			pass.m_litColorBuffer = builder.ReadTexture(textures.litColorBuffer);
 			pass.m_shadowedColorBuffer = builder.ReadTexture(textures.shadowedColorBuffer);
-			pass.m_overlaySaturationBuffer = builder.ReadTexture(textures.overlaySaturationBuffer);
-			pass.m_shadowBuffer0 = builder.ReadTexture(textures.shadowBuffers[0]);
 			pass.m_softBlurBuffers = ReadTextures(builder, textures.softBlurBuffers);
 			pass.m_heavyBlurBuffers = ReadTextures(builder, textures.heavyBlurBuffers);
 			pass.m_bloomBuffers = WriteTextures(builder, textures.bloomBuffers);

@@ -14,24 +14,20 @@ namespace AoSA.RenderPipeline
 		private Camera m_camera;
 
 		private RendererListHandle m_list;
-		private TextureHandle m_litColorBuffer, m_shadowedColorBuffer, m_overlaySaturationBuffer, m_depthAttachment;
+		private TextureHandle m_litColorBuffer, m_shadowedColorBuffer, m_depthAttachment;
 		private TextureHandle[] m_shadowBuffers;
 		private Vector4[] m_lightColors;
 
 		private void Render(RenderGraphContext context)
 		{
-			RenderTargetIdentifier[] buffers = new RenderTargetIdentifier[3 + m_shadowBuffers.Length];
+			RenderTargetIdentifier[] buffers = new RenderTargetIdentifier[2 + m_shadowBuffers.Length];
 
 			AddAndClearRenderTarget(context.cmd, ref buffers, 0, m_litColorBuffer, m_camera.clearFlags == CameraClearFlags.Color ? RemoveAlpha(m_camera) : Color.clear);
 			AddAndClearRenderTarget(context.cmd, ref buffers, 1, m_shadowedColorBuffer, Color.clear);
-			AddAndClearRenderTarget(context.cmd, ref buffers, 2, m_overlaySaturationBuffer, new Color(0.5f, 0.5f, 0.5f, 0.5f));
 			for (int i = 0; i < m_shadowBuffers.Length; ++i)
 			{
-				Color clearColor = i == 0 ?
-					new Color(0.0f, 0.0f, m_lightColors[0].w, 0.0f) :
-					new Color(m_lightColors[i * 2 - 1].w, 0.0f, m_lightColors[i * 2].w, 0.0f);
-				
-				AddAndClearRenderTarget(context.cmd, ref buffers, i + 3, m_shadowBuffers[i], clearColor);
+				Color clearColor = new Color(m_lightColors[i * 2].w, 0.0f, m_lightColors[i * 2].w, 0.0f);
+				AddAndClearRenderTarget(context.cmd, ref buffers, i + 2, m_shadowBuffers[i], clearColor);
 			}
 
 			context.cmd.SetRenderTarget(buffers, m_depthAttachment);
@@ -79,7 +75,6 @@ namespace AoSA.RenderPipeline
 			pass.m_shadowBuffers = ReadWriteTextures(builder, textures.shadowBuffers);
 			pass.m_litColorBuffer = builder.ReadWriteTexture(textures.litColorBuffer);
 			pass.m_shadowedColorBuffer = builder.ReadWriteTexture(textures.shadowedColorBuffer);
-			pass.m_overlaySaturationBuffer = builder.ReadWriteTexture(textures.overlaySaturationBuffer);
 			pass.m_depthAttachment = builder.ReadWriteTexture(textures.depthAttachment);
 			builder.ReadTexture(shadowTextures.directionalAtlas);
 

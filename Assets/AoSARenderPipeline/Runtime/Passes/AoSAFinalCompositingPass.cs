@@ -9,6 +9,9 @@ namespace AoSA.RenderPipeline
 		private static readonly ProfilingSampler m_sampler = new("FinalCompositingPass");
 
 		private static int WarpBloomId = Shader.PropertyToID("_WarpBloom");
+		private static int OverlayId = Shader.PropertyToID("_Overlay");
+		private static int SaturationId = Shader.PropertyToID("_Saturation");
+
 		private static int[] SourceIds = new int[5]
 		{
 			Shader.PropertyToID("_Source0"),
@@ -23,9 +26,14 @@ namespace AoSA.RenderPipeline
 		private TextureHandle m_litColorBuffer, m_warpBuffer;
 		private TextureHandle[] m_bloomBuffers;
 
+		private Color m_overlay;
+		private float m_saturation;
+
 		void Render(RenderGraphContext context)
 		{
 			context.cmd.SetGlobalFloat(WarpBloomId, m_settings.warpBloom ? 1.0f : 0.0f);
+			context.cmd.SetGlobalColor(OverlayId, m_overlay);
+			context.cmd.SetGlobalFloat(SaturationId, m_saturation);
 			
 			context.cmd.SetGlobalTexture(SourceIds[0], m_litColorBuffer);
 			context.cmd.SetGlobalTexture(SourceIds[1], m_warpBuffer);
@@ -39,10 +47,12 @@ namespace AoSA.RenderPipeline
 			context.cmd.Clear();
 		}
 
-		public static void Record(RenderGraph renderGraph, AoSARenderPipelineSettings settings, in CameraRendererTextures textures)
+		public static void Record(RenderGraph renderGraph, AoSARenderPipelineSettings settings, Color overlay, float saturation, in CameraRendererTextures textures)
 		{
 			using RenderGraphBuilder builder = renderGraph.AddRenderPass(m_sampler.name, out FinalCompositingPass pass, m_sampler);
 			pass.m_settings = settings;
+			pass.m_overlay = overlay;
+			pass.m_saturation = saturation;
 			pass.m_litColorBuffer = builder.ReadTexture(textures.litColorBuffer);
 			pass.m_warpBuffer = builder.ReadTexture(textures.warpColor);
 			pass.m_bloomBuffers = ReadTextures(builder, textures.bloomBuffers);
