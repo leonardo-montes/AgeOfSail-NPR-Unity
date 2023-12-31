@@ -8,21 +8,13 @@ namespace AoSA.RenderPipeline
 	{
 		private static readonly ProfilingSampler Sampler = new("Blur Pass");
 
-		private static int[] PingRTsId = new int[5]
+		private static int[] TempRTsId = new int[5]
 		{
-			Shader.PropertyToID("_PingRT0"),
-			Shader.PropertyToID("_PingRT1"),
-			Shader.PropertyToID("_PingRT2"),
-			Shader.PropertyToID("_PingRT3"),
-			Shader.PropertyToID("_PingRT4")
-		};
-		private static int[] PongRTsId = new int[5]
-		{
-			Shader.PropertyToID("_PongRT0"),
-			Shader.PropertyToID("_PongRT1"),
-			Shader.PropertyToID("_PongRT2"),
-			Shader.PropertyToID("_PongRT3"),
-			Shader.PropertyToID("_PongRT4")
+			Shader.PropertyToID("_TempRT0"),
+			Shader.PropertyToID("_TempRT1"),
+			Shader.PropertyToID("_TempRT2"),
+			Shader.PropertyToID("_TempRT3"),
+			Shader.PropertyToID("_TempRT4")
 		};
 		private static int[] SourceIds = new int[5]
 		{
@@ -35,40 +27,44 @@ namespace AoSA.RenderPipeline
 
 		private static int BlurRadiusId = Shader.PropertyToID("_BlurRadius");
 
-		private TextureHandle[] m_shadowBuffers, m_blurBuffers;
+		private TextureHandle[] m_shadowBuffers, m_softBlurBuffers, m_heavyBlurBuffers;
 		private Vector2Int m_bufferSize;
 		private bool m_useHDR;
 		private AoSARenderPipelineSettings m_settings;
 
 		private void Render(RenderGraphContext context)
 		{
-			RenderTargetIdentifier[] pingRTs = new RenderTargetIdentifier[m_shadowBuffers.Length];
-			RenderTargetIdentifier[] pongRTs = new RenderTargetIdentifier[m_shadowBuffers.Length];
-			RenderTargetIdentifier[] shadowRTs = new RenderTargetIdentifier[m_shadowBuffers.Length];
-			RenderTargetIdentifier[] blurRTs = new RenderTargetIdentifier[m_shadowBuffers.Length];
-			for (int i = 0; i < m_shadowBuffers.Length; ++i)
+			int bufferCount = m_shadowBuffers.Length;
+			RenderTargetIdentifier[] tempRTs = new RenderTargetIdentifier[bufferCount];
+			RenderTargetIdentifier[] shadowRTs = new RenderTargetIdentifier[bufferCount];
+			RenderTargetIdentifier[] softBlurRTs = new RenderTargetIdentifier[bufferCount];
+			RenderTargetIdentifier[] heavyBlurRTs = new RenderTargetIdentifier[bufferCount];
+			for (int i = 0; i < bufferCount; ++i)
 			{
-				context.cmd.GetTemporaryRT(PingRTsId[i], Mathf.CeilToInt(m_bufferSize.x / m_settings.downsampleAmount), Mathf.CeilToInt(m_bufferSize.y / m_settings.downsampleAmount), 0, FilterMode.Point, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
-				context.cmd.GetTemporaryRT(PongRTsId[i], Mathf.CeilToInt(m_bufferSize.x / m_settings.downsampleAmount), Mathf.CeilToInt(m_bufferSize.y / m_settings.downsampleAmount), 0, FilterMode.Point, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+				context.cmd.GetTemporaryRT(TempRTsId[i], Mathf.CeilToInt(m_bufferSize.x / m_settings.softBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.softBlurDownsample), 0, FilterMode.Point, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
 			
-				pingRTs[i] = new RenderTargetIdentifier(PingRTsId[i]);
-				pongRTs[i] = new RenderTargetIdentifier(PongRTsId[i]);
+				tempRTs[i] = new RenderTargetIdentifier(TempRTsId[i]);
 				shadowRTs[i] = new RenderTargetIdentifier(m_shadowBuffers[i]);
-				blurRTs[i] = new RenderTargetIdentifier(m_blurBuffers[i]);
+				softBlurRTs[i] = new RenderTargetIdentifier(m_softBlurBuffers[i]);
+				heavyBlurRTs[i] = new RenderTargetIdentifier(m_heavyBlurBuffers[i]);
 			}
 
-			context.cmd.SetGlobalFloat(BlurRadiusId, m_settings.blurRadius);
-
-			Draw(context.cmd, shadowRTs, pingRTs, AoSARenderPipeline.Pass.BlurHorizontalArray);
-			Draw(context.cmd, pingRTs,   pongRTs, AoSARenderPipeline.Pass.BlurVerticalArray);
-
-			Draw(context.cmd, pongRTs,   blurRTs, AoSARenderPipeline.Pass.CopyArray);
-
-			for (int i = 0; i < m_shadowBuffers.Length; ++i)
+			Draw(context.cmd, shadowRTs, softBlurRTs, AoSARenderPipeline.Pass.DownsampleArray);
+			Draw(context.cmd, softBlurRTs, tempRTs, AoSARenderPipeline.Pass.BlurHorizontalArray);
+			Draw(context.cmd, tempRTs, softBlurRTs, AoSARenderPipeline.Pass.BlurVerticalArray);
+			
+			for (int i = 0; i < bufferCount; ++i)
 			{
-				context.cmd.ReleaseTemporaryRT(PingRTsId[i]);
-				context.cmd.ReleaseTemporaryRT(PongRTsId[i]);
+				context.cmd.ReleaseTemporaryRT(TempRTsId[i]);
+				context.cmd.GetTemporaryRT(TempRTsId[i], Mathf.CeilToInt(m_bufferSize.x / m_settings.heavyBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.heavyBlurDownsample), 0, FilterMode.Bilinear, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
 			}
+			
+			Draw(context.cmd, softBlurRTs, heavyBlurRTs, AoSARenderPipeline.Pass.DownsampleArray);
+			Draw(context.cmd, heavyBlurRTs, tempRTs, AoSARenderPipeline.Pass.BlurHorizontalArray);
+			Draw(context.cmd, tempRTs, heavyBlurRTs, AoSARenderPipeline.Pass.BlurVerticalArray);
+
+			for (int i = 0; i < bufferCount; ++i)
+				context.cmd.ReleaseTemporaryRT(TempRTsId[i]);
 
 			context.renderContext.ExecuteCommandBuffer(context.cmd);
 			context.cmd.Clear();
@@ -90,7 +86,8 @@ namespace AoSA.RenderPipeline
 			pass.m_useHDR = useHDR;
 			pass.m_settings = settings;
 			pass.m_shadowBuffers = ReadTextures(builder, textures.shadowBuffers);
-			pass.m_blurBuffers = WriteTextures(builder, textures.blurBuffers);
+			pass.m_softBlurBuffers = WriteTextures(builder, textures.softBlurBuffers);
+			pass.m_heavyBlurBuffers = WriteTextures(builder, textures.heavyBlurBuffers);
 			builder.DependsOn(listHandle);
 			builder.SetRenderFunc<BlurPass>((pass, context) => pass.Render(context));
 		}

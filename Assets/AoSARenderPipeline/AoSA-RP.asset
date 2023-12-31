@@ -34,7 +34,10 @@ MonoBehaviour:
     warpGlobalScale: 200
     warpGlobalDistanceFade: 0.1
     warpWidth: 0.003
-    blurRadius: 0.001
-    downsampleAmount: 2
+    softBlurDownsample: 2
+    heavyBlurDownsample: 8
+    shadowStepCount: 3
     shadowThreshold: 0.5
     shadowThresholdSoftness: 0.3
+    shadowInnerGlow: 0.3
+    warpBloom: 0

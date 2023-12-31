@@ -5,10 +5,11 @@ namespace AoSA.RenderPipeline
 	public readonly ref struct CameraRendererTextures
 	{
 		public readonly TextureHandle litColorBuffer, shadowedColorBuffer, overlaySaturationBuffer, depthAttachment,  warpColor, warpDepth;
-		public readonly TextureHandle[] shadowBuffers, blurBuffers;
+		public readonly TextureHandle[] shadowBuffers, softBlurBuffers, heavyBlurBuffers, bloomBuffers;
 
 		public CameraRendererTextures(TextureHandle litColorBuffer, TextureHandle shadowedColorBuffer, TextureHandle overlaySaturationBuffer,
-			TextureHandle depthAttachment, TextureHandle warpColor, TextureHandle warpDepth, TextureHandle[] shadowBuffers, TextureHandle[] blurBuffers)
+			TextureHandle depthAttachment, TextureHandle warpColor, TextureHandle warpDepth, TextureHandle[] shadowBuffers, TextureHandle[] heavyBlurBuffers,
+			TextureHandle[] softBlurBuffers, TextureHandle[] bloomBuffers)
 		{
 			this.litColorBuffer = litColorBuffer;
 			this.shadowedColorBuffer = shadowedColorBuffer;
@@ -17,7 +18,9 @@ namespace AoSA.RenderPipeline
 			this.warpColor = warpColor;
 			this.warpDepth = warpDepth;
 			this.shadowBuffers = shadowBuffers;
-			this.blurBuffers = blurBuffers;
+			this.heavyBlurBuffers = heavyBlurBuffers;
+			this.softBlurBuffers = softBlurBuffers;
+			this.bloomBuffers = bloomBuffers;
 		}
 	}
 }

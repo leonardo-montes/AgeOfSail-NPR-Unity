@@ -40,7 +40,7 @@ namespace AoSA.RenderPipeline
 				ShadowTextures shadowTextures = DepthPass.Record(renderGraph, cullingResults, camera, settings, -1, out int totalLightCount, out Vector4[] lightColors);
 
 				// Setup
-				CameraRendererTextures textures = SetupPass.Record(renderGraph, useHDR, bufferSize, camera, totalLightCount);
+				CameraRendererTextures textures = SetupPass.Record(renderGraph, useHDR, bufferSize, camera, settings, totalLightCount);
 
 				// Warp pass
 				WarpPass.Record(renderGraph, camera, cullingResults, settings, textures);

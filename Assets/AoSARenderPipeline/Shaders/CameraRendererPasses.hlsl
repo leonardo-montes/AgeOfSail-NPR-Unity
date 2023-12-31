@@ -13,6 +13,13 @@ TEXTURE2D(_Source5);
 TEXTURE2D(_Source6);
 TEXTURE2D(_Source7);
 TEXTURE2D(_Source8);
+TEXTURE2D(_Source9);
+TEXTURE2D(_Source10);
+TEXTURE2D(_Source11);
+TEXTURE2D(_Source12);
+TEXTURE2D(_Source13);
+
+float4 _Source0_TexelSize;
 
 float4 GetSource(TEXTURE2D(source), float2 screenUV)
 {
@@ -52,10 +59,20 @@ struct Buffers
 	float4 buffer4 : SV_TARGET4;
 };
 
+
+// ------------------------------------------------------------------------------------------------------------
+// -                                              COPY PASS                                                   -
+// ------------------------------------------------------------------------------------------------------------
+
 float4 CopyPassFragment (Varyings input) : SV_TARGET
 {
 	return GetSource(_Source0, input.screenUV);
 }
+
+
+// ------------------------------------------------------------------------------------------------------------
+// -                                           COPY ARRAY PASS                                                -
+// ------------------------------------------------------------------------------------------------------------
 
 Buffers CopyArrayPassFragment (Varyings input)
 {
@@ -68,156 +85,143 @@ Buffers CopyArrayPassFragment (Varyings input)
 	return buffers;
 }
 
-// Separable Gaussian Blur From: https://www.shadertoy.com/view/ltBXRh
-float normpdf(in float x, in float sigma)
+
+// ------------------------------------------------------------------------------------------------------------
+// -                                      DOWNSAMPLE ARRAY PASS                                               -
+// ------------------------------------------------------------------------------------------------------------
+
+// see '2.6 - Box Sampling' at 'https://catlikecoding.com/unity/tutorials/advanced-rendering/bloom/'
+float4 BoxSample (TEXTURE2D(source), float2 uv, float4 offset)
 {
-	return 0.39894 * exp(-0.5 * x * x / (sigma * sigma)) / sigma;
+	return (GetSource(source, uv + offset.zw) +
+		    GetSource(source, uv + offset.zy) +
+		    GetSource(source, uv + offset.xw) +
+		    GetSource(source, uv + offset.xy)) * 0.25;
 }
 
-float _BlurRadius;
-
-#define BLUR_MSIZE 25
-#define BLUR_KSIZE (BLUR_MSIZE - 1) / 2
-#define BLUR_SIGMA 7
-
-void FillKernel(out float kernel[BLUR_MSIZE], out float Z)
+Buffers DownsampleArrayPassFragment (Varyings input)
 {
-	Z = 0;
-	int j;
-	[unroll]
-	for (j = 0; j <= BLUR_KSIZE; ++j)
-	{
-		kernel[BLUR_KSIZE+j] = kernel[BLUR_KSIZE-j] = normpdf(float(j), BLUR_SIGMA);
-	}
+	float2 uv = input.screenUV;
+	float4 offset = _Source0_TexelSize.xyxy * float2(-1.0, 1.0).xxyy;
 
-	[unroll]
-	for (j = 0; j < BLUR_MSIZE; ++j)
-	{
-		Z += kernel[j];
-	}
+	Buffers buffers;
+	buffers.buffer0 = BoxSample(_Source0, uv, offset);
+	buffers.buffer1 = BoxSample(_Source1, uv, offset);
+	buffers.buffer2 = BoxSample(_Source2, uv, offset);
+	buffers.buffer3 = BoxSample(_Source3, uv, offset);
+	buffers.buffer4 = BoxSample(_Source4, uv, offset);
+	return buffers;
 }
 
-void BlurSample(out float4 res[5], in float kernel[BLUR_MSIZE], in float texelSize, in float2 uv, in float2 dir)
-{
-	int i;
-	[unroll]
-	for (i = 0; i < 5; ++i)
-	{
-		res[i] = 0.0;
-	}
 
-	float2 currUV;
-	[unroll]
-	for (i = -BLUR_KSIZE; i <= BLUR_KSIZE; ++i)
-	{
-		currUV = uv + dir * float(i) * texelSize;
-		res[0] += kernel[BLUR_KSIZE + i] * GetSource(_Source0, currUV);
-		res[1] += kernel[BLUR_KSIZE + i] * GetSource(_Source1, currUV);
-		res[2] += kernel[BLUR_KSIZE + i] * GetSource(_Source2, currUV);
-		res[3] += kernel[BLUR_KSIZE + i] * GetSource(_Source3, currUV);
-		res[4] += kernel[BLUR_KSIZE + i] * GetSource(_Source4, currUV);
-	}
+// ------------------------------------------------------------------------------------------------------------
+// -                                          1D BLUR PASS                                                    -
+// ------------------------------------------------------------------------------------------------------------
+
+float4 Sample1DGaussian (TEXTURE2D(source), float2 uv, float2 offset)
+{
+	return GetSource(source, uv)                   * 0.227 +
+		   GetSource(source, uv + offset * -3.231) * 0.07  +
+		   GetSource(source, uv + offset *  3.231) * 0.07  +
+		   GetSource(source, uv + offset * -1.385) * 0.316 + 
+		   GetSource(source, uv + offset *  1.385) * 0.316;
 }
 
 Buffers HorizontalBlurPassFragment (Varyings input)
 {
-	float kernel[BLUR_MSIZE];
-	float Z;
-	
-	FillKernel(kernel, Z);
-
-	float texelSize = _BlurRadius * (_ScreenParams.y / _ScreenParams.x);
-	float4 res[5];
-	BlurSample(res, kernel, texelSize, input.screenUV.xy, float2(1.0, 0.0));
+	float2 uv = input.screenUV;
+	float2 offset = float2(_Source0_TexelSize.x, 0.0);
 
 	Buffers buffers;
-	buffers.buffer0 = res[0] / Z;
-	buffers.buffer1 = res[1] / Z;
-	buffers.buffer2 = res[2] / Z;
-	buffers.buffer3 = res[3] / Z;
-	buffers.buffer4 = res[4] / Z;
+	buffers.buffer0 = Sample1DGaussian(_Source0, uv, offset);
+	buffers.buffer1 = Sample1DGaussian(_Source1, uv, offset);
+	buffers.buffer2 = Sample1DGaussian(_Source2, uv, offset);
+	buffers.buffer3 = Sample1DGaussian(_Source3, uv, offset);
+	buffers.buffer4 = Sample1DGaussian(_Source4, uv, offset);
 	return buffers;
 }
 
 Buffers VerticalBlurPassFragment (Varyings input)
 {
-	float kernel[BLUR_MSIZE];
-	float Z;
-	
-	FillKernel(kernel, Z);
-
-	float texelSize = _BlurRadius;
-	float4 res[5];
-	BlurSample(res, kernel, texelSize, input.screenUV.xy, float2(0.0, 1.0));
+	float2 uv = input.screenUV;
+	float2 offset = float2(0.0, _Source0_TexelSize.y);
 
 	Buffers buffers;
-	buffers.buffer0 = res[0] / Z;
-	buffers.buffer1 = res[1] / Z;
-	buffers.buffer2 = res[2] / Z;
-	buffers.buffer3 = res[3] / Z;
-	buffers.buffer4 = res[4] / Z;
+	buffers.buffer0 = Sample1DGaussian(_Source0, uv, offset);
+	buffers.buffer1 = Sample1DGaussian(_Source1, uv, offset);
+	buffers.buffer2 = Sample1DGaussian(_Source2, uv, offset);
+	buffers.buffer3 = Sample1DGaussian(_Source3, uv, offset);
+	buffers.buffer4 = Sample1DGaussian(_Source4, uv, offset);
 	return buffers;
 }
+
+
+// ------------------------------------------------------------------------------------------------------------
+// -                                           COMPOSITING PASS                                               -
+// ------------------------------------------------------------------------------------------------------------
 
 int _TotalLightCount;
 float4 _LightColors[MAX_LIGHT_COUNT];
 
-void GetBlurredShadows(in TEXTURE2D(source), inout float blurredShadows[MAX_LIGHT_COUNT], inout float blurredSpeculars[MAX_LIGHT_COUNT], in float2 uv, in int startId)
+int _ShadowStepCount;
+float _ShadowThreshold;
+float _ShadowThresholdSoftness;
+float _ShadowInnerGlow;
+
+void SampleTextures(in TEXTURE2D(softBlurSource), in TEXTURE2D(heavyBlurSource),
+	inout float2 shadows[MAX_LIGHT_COUNT], inout float speculars[MAX_LIGHT_COUNT], inout float blooms[MAX_LIGHT_COUNT], in float2 uv, in int startId)
 {
-	float4 data = GetSource(source, uv);
+	float4 softBlur = GetSource(softBlurSource, uv);
+	float4 heavyBlur = GetSource(heavyBlurSource, uv);
 
-	blurredShadows[startId] = data.r;
-	blurredSpeculars[startId] = data.g;
+	shadows[startId].r = softBlur.r;
+	shadows[startId].g = heavyBlur.r;
+	speculars[startId] = step(0.5, softBlur.g);
+	blooms[startId] = heavyBlur.g + 0.5 * softBlur.g;
 
-	blurredShadows[startId + 1] = data.b;
-	blurredSpeculars[startId + 1] = data.a;
+	shadows[startId + 1].r = softBlur.b;
+	shadows[startId + 1].g = heavyBlur.b;
+	speculars[startId + 1] = step(0.5, softBlur.a);
+	blooms[startId + 1] = heavyBlur.a + 0.5 * softBlur.a;
 }
 
-void GetBlurredShadows(in TEXTURE2D(source0), in TEXTURE2D(source1), in TEXTURE2D(source2), in TEXTURE2D(source3), in TEXTURE2D(source4), out float blurredShadows[MAX_LIGHT_COUNT], out float blurredSpeculars[MAX_LIGHT_COUNT], in float2 uv)
+void SampleTextures(in TEXTURE2D(soft0), in TEXTURE2D(heavy0), in TEXTURE2D(soft1), in TEXTURE2D(heavy1), in TEXTURE2D(soft2), in TEXTURE2D(heavy2),
+	in TEXTURE2D(soft3), in TEXTURE2D(heavy3), in TEXTURE2D(soft4), in TEXTURE2D(heavy4),
+	out float2 shadows[MAX_LIGHT_COUNT], out float speculars[MAX_LIGHT_COUNT], out float blooms[MAX_LIGHT_COUNT], in float2 uv)
 {
 	int i;
 	[unroll]
 	for (i = 0; i < MAX_LIGHT_COUNT; ++i)
 	{
-		blurredShadows[i] = 0.0;
-		blurredSpeculars[i] = 0.0; 
+		shadows[i] = 0.0;
+		speculars[i] = 0.0; 
+		blooms[i] = 0.0; 
 	}
 
-	float4 data = GetSource(source0, uv);
-	blurredShadows[0] = data.b;
-	blurredSpeculars[0] = data.a;
+	float4 softBlur = GetSource(soft0, uv);
+	float4 heavyBlur = GetSource(heavy0, uv);
+	shadows[0] = float2(softBlur.b, heavyBlur.b);
+	speculars[0] = step(0.5, softBlur.a);
+	blooms[0] = heavyBlur.a + 0.5 * softBlur.a;
+
 	if (_TotalLightCount > 1)
-		GetBlurredShadows(source1, blurredShadows, blurredSpeculars, uv, 1);
+		SampleTextures(soft1, heavy1, shadows, speculars, blooms, uv, 1);
 	if (_TotalLightCount > 3)
-		GetBlurredShadows(source2, blurredShadows, blurredSpeculars, uv, 3);
+		SampleTextures(soft2, heavy2, shadows, speculars, blooms, uv, 3);
 	if (_TotalLightCount > 5)
-		GetBlurredShadows(source3, blurredShadows, blurredSpeculars, uv, 5);
+		SampleTextures(soft3, heavy3, shadows, speculars, blooms, uv, 5);
 	if (_TotalLightCount > 7)
-		GetBlurredShadows(source4, blurredShadows, blurredSpeculars, uv, 7);
+		SampleTextures(soft4, heavy4, shadows, speculars, blooms, uv, 7);
 }
 
-float _ShadowThreshold;
-float _ShadowThresholdSoftness;
-
-float SteppedGradient (float x, int n)
+float SteppedGradient(float value, float threshold, float softness, float stepCount)
 {
-	float softness = 0.01;
-
-	float res = 0, t;
-	int cnt = max(1, n);
-	for (int i = 0; i < cnt; ++i)
-	{
-		t = ((float(i) / (cnt))) * _ShadowThresholdSoftness * min(n, 1);
-		res += smoothstep(_ShadowThreshold + t - softness, _ShadowThreshold + t + softness, x);
-	}
-	return res / cnt;
-
-	// 'For texture indication, wherever the Shadow Pass blue channel is non-zero, we increase the number of steps in the
-	//  thresholding operation.'
-	//return smoothstep(_ShadowThreshold - _ShadowThresholdSoftness, _ShadowThreshold + _ShadowThresholdSoftness, x);
+	float thresholdedValue = (value - threshold) / softness;
+	return saturate(floor(thresholdedValue * stepCount) / stepCount);
 }
 
-void ApplyColoredShadows(inout float3 color, in float4 shadowedColor, in float3 litColor, in float blurredShadows[MAX_LIGHT_COUNT], in float blurredSpeculars[MAX_LIGHT_COUNT], in float breakup)
+void ApplyColoredShadows(inout float3 color, in float4 shadowedColor, in float3 litColor,
+	in float2 shadows[MAX_LIGHT_COUNT], in float speculars[MAX_LIGHT_COUNT], in float breakup)
 {
 	if (_TotalLightCount <= 0)
 	{
@@ -225,25 +229,21 @@ void ApplyColoredShadows(inout float3 color, in float4 shadowedColor, in float3 
 		return;
 	}
 
-	int steppingCount = int(breakup * 8);
+	float stepCount = floor(breakup * _ShadowStepCount + 1.0);
+	float threshold = _ShadowThreshold;
+	float thresholdSoftness = breakup * _ShadowThresholdSoftness;
+	float innerGlow = _ShadowInnerGlow;
 
-	// 'To produce hard-edged silhouettes with rounded corners, we threshold the Blur Pass red channel.'
-	float shadow = SteppedGradient(blurredShadows[0], steppingCount);
+	float shadow = SteppedGradient(shadows[0].r, threshold, thresholdSoftness, stepCount);
+	shadow = lerp((1.0 - shadows[0].g * innerGlow * 2.0) * shadow, shadow + (1.0 - shadows[0].g) * (1.0 - shadow) * innerGlow, _LightColors[0].a);
 
-	// 'We create the Fuchs-inspired “inner glow” effect by inverting the Blur Pass and
-	//  clamping it to add a bit of light to the interior of the dark regions.'
-	shadow += ((1.0 - blurredShadows[0] - 0.5) * 0.1) * (1.0 - shadow) * _LightColors[0].a;
-
-	float specular = step(0.5, blurredSpeculars[0]);
-
-	color = lerp(color, litColor * _LightColors[0].rgb, shadow) + specular * _LightColors[0].rgb;
+	color = lerp(color, litColor * _LightColors[0].rgb, shadow) + speculars[0] * _LightColors[0].rgb;
 
 	for (int i = 1; i < _TotalLightCount; ++i)
 	{
-		shadow = SteppedGradient(blurredShadows[i], steppingCount);
-		shadow += ((1.0 - blurredShadows[i] - 0.5) * 0.1) * (1.0 - shadow) * _LightColors[i].a;
-		specular = step(0.5, blurredSpeculars[i]);
-		color += litColor * _LightColors[i].rgb * shadow + specular * _LightColors[i].rgb;
+		shadow = SteppedGradient(shadows[i].r, threshold, thresholdSoftness, stepCount);
+		shadow = lerp((1.0 - shadows[i].g * innerGlow * 2.0) * shadow, shadow + (1.0 - shadows[i].g) * (1.0 - shadow) * innerGlow, _LightColors[i].a);
+		color += litColor * _LightColors[i].rgb * shadow + speculars[i] * _LightColors[i].rgb;
 	}
 }
 
@@ -266,7 +266,14 @@ float3 Saturation(float3 color, float saturation)
 	return luma.xxx + saturation.xxx * (color - luma.xxx);
 }
 
-float4 CompositingPassFragment (Varyings input) : SV_TARGET
+struct CompositingBuffers
+{
+	float4 buffer0 : SV_TARGET0;
+	float4 buffer1 : SV_TARGET1;
+	float4 buffer2 : SV_TARGET2;
+};
+
+CompositingBuffers CompositingPassFragment (Varyings input)
 {	
 	float4 litColor = GetSource(_Source0, input.screenUV);
 	float4 shadowedColor = GetSource(_Source1, input.screenUV);
@@ -276,12 +283,13 @@ float4 CompositingPassFragment (Varyings input) : SV_TARGET
 	float breakup = shadowBuffer0.r;
 	float saturation = shadowedColor.a;
 
-	float blurredShadows[MAX_LIGHT_COUNT];
-	float blurredSpeculars[MAX_LIGHT_COUNT];
-	GetBlurredShadows(_Source4, _Source5, _Source6, _Source7, _Source8, blurredShadows, blurredSpeculars, input.screenUV);
+	float2 shadows[MAX_LIGHT_COUNT];
+	float speculars[MAX_LIGHT_COUNT];
+	float blooms[MAX_LIGHT_COUNT];
+	SampleTextures(_Source4, _Source5, _Source6, _Source7, _Source8, _Source9, _Source10, _Source11, _Source12, _Source13, shadows, speculars, blooms, input.screenUV);
 
-	float4 color = float4(0.0, 0.0, 0.0, litColor.a);
-	ApplyColoredShadows(color.rgb, shadowedColor, litColor.rgb, blurredShadows, blurredSpeculars, breakup);
+	float3 color = 0.0;
+	ApplyColoredShadows(color.rgb, shadowedColor, litColor.rgb, shadows, speculars, breakup);
 
 	// Overlay
 	color.rgb = lerp(color, BlendMode_Overlay(color, overlay.rgb), overlay.a);
@@ -290,12 +298,48 @@ float4 CompositingPassFragment (Varyings input) : SV_TARGET
 	color.rgb = Saturation(color, saturation);
 
 	// Reapply sky
-	color = lerp(color, litColor, 1.0 - litColor.a);
+	color = lerp(color, litColor.rgb, 1.0 - litColor.a);
 
-	return color;
+	CompositingBuffers buffers;
+	buffers.buffer0 = float4(color, blooms[0]);
+	buffers.buffer1 = float4(blooms[1], blooms[2], blooms[3], blooms[4]);
+	buffers.buffer2 = float4(blooms[5], blooms[6], blooms[7], blooms[8]);
+	return buffers;
 }
 
-void ApplyColoredSpeculars(inout float3 color, in float blurredSpeculars[MAX_LIGHT_COUNT])
+
+// ------------------------------------------------------------------------------------------------------------
+// -                                       FINAL COMPOSITING PASS                                             -
+// ------------------------------------------------------------------------------------------------------------
+
+void SampleTexturesBloom(in TEXTURE2D(source), inout float blooms[MAX_LIGHT_COUNT], in float2 uv, in int startId)
+{
+	float4 bloom = GetSource(source, uv);
+
+	blooms[startId] = bloom.r;
+	blooms[startId + 1] = bloom.g;
+	blooms[startId + 2] = bloom.b;
+	blooms[startId + 3] = bloom.a;
+}
+
+void SampleTexturesBloom(in float bloom0, in TEXTURE2D(bloom1), in TEXTURE2D(bloom2), out float blooms[MAX_LIGHT_COUNT], in float2 uv)
+{
+	int i;
+	[unroll]
+	for (i = 0; i < MAX_LIGHT_COUNT; ++i)
+	{
+		blooms[i] = 0.0; 
+	}
+	
+	blooms[0] = bloom0;
+
+	if (_TotalLightCount > 1)
+		SampleTexturesBloom(bloom1, blooms, uv, 1);
+	if (_TotalLightCount > 5)
+		SampleTexturesBloom(bloom2, blooms, uv, 5);
+}
+
+void ApplyColoredBlooms(inout float3 color, in float blooms[MAX_LIGHT_COUNT])
 {
 	if (_TotalLightCount <= 0)
 	{
@@ -304,23 +348,28 @@ void ApplyColoredSpeculars(inout float3 color, in float blurredSpeculars[MAX_LIG
 
 	for (int i = 0; i < _TotalLightCount; ++i)
 	{
-		color += blurredSpeculars[i] * _LightColors[i].rgb;
+		color += blooms[i] * _LightColors[i].rgb;
 	}
 }
 
 float _WarpWidth;
+float _WarpBloom;
 
 float4 FinalCompositingPassFragment (Varyings input) : SV_TARGET
 {
 	float2 warp = (GetSource(_Source1, input.screenUV).rg * 2.0 - 1.0) * _WarpWidth;
 	float2 warpedUV = input.screenUV + warp;
-	
-	float blurredShadows[MAX_LIGHT_COUNT];
-	float blurredSpeculars[MAX_LIGHT_COUNT];
-	GetBlurredShadows(_Source2, _Source3, _Source4, _Source5, _Source6, blurredShadows, blurredSpeculars, input.screenUV);
-	
+
 	float4 color = GetSource(_Source0, warpedUV);
-	ApplyColoredSpeculars(color.rgb, blurredSpeculars);
+
+	if (_WarpBloom < 0.5)
+	{
+		color.a = GetSource(_Source0, input.screenUV).a;
+	}
+	
+	float blooms[MAX_LIGHT_COUNT];
+	SampleTexturesBloom(color.a, _Source2, _Source3, blooms, input.screenUV + warp * _WarpBloom);
+	ApplyColoredBlooms(color.rgb, blooms);
 
 	return color;
 }

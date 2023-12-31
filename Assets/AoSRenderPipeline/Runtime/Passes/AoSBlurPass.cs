@@ -9,7 +9,6 @@ namespace AoS.RenderPipeline
 		private static readonly ProfilingSampler Sampler = new("Blur Pass");
 
 		private static int TempRT0Id = Shader.PropertyToID("_TempRT0");
-		private static int TempRT1Id = Shader.PropertyToID("_TempRT1");
 		private static int Source0Id = Shader.PropertyToID("_Source0");
 
 		private TextureHandle m_colorAttachment, m_heavyBlurBuffer, m_softBlurBuffer;
@@ -20,18 +19,19 @@ namespace AoS.RenderPipeline
 		private void Render(RenderGraphContext context)
 		{
 			context.cmd.GetTemporaryRT(TempRT0Id, Mathf.CeilToInt(m_bufferSize.x / m_settings.softBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.softBlurDownsample), 0, FilterMode.Bilinear, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
-			context.cmd.GetTemporaryRT(TempRT1Id, Mathf.CeilToInt(m_bufferSize.x / m_settings.heavyBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.heavyBlurDownsample), 0, FilterMode.Bilinear, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
 
 			Draw(context.cmd, m_colorAttachment, m_softBlurBuffer, AoSRenderPipeline.Pass.Downsample);
 			Draw(context.cmd, m_softBlurBuffer, TempRT0Id, AoSRenderPipeline.Pass.BlurHorizontal);
 			Draw(context.cmd, TempRT0Id, m_softBlurBuffer, AoSRenderPipeline.Pass.BlurVertical);
 			
+			context.cmd.ReleaseTemporaryRT(TempRT0Id);
+			context.cmd.GetTemporaryRT(TempRT0Id, Mathf.CeilToInt(m_bufferSize.x / m_settings.heavyBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.heavyBlurDownsample), 0, FilterMode.Bilinear, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+
 			Draw(context.cmd, m_softBlurBuffer, m_heavyBlurBuffer, AoSRenderPipeline.Pass.Downsample);
-			Draw(context.cmd, m_heavyBlurBuffer, TempRT1Id, AoSRenderPipeline.Pass.BlurHorizontal);
-			Draw(context.cmd, TempRT1Id, m_heavyBlurBuffer, AoSRenderPipeline.Pass.BlurVertical);
+			Draw(context.cmd, m_heavyBlurBuffer, TempRT0Id, AoSRenderPipeline.Pass.BlurHorizontal);
+			Draw(context.cmd, TempRT0Id, m_heavyBlurBuffer, AoSRenderPipeline.Pass.BlurVertical);
 
 			context.cmd.ReleaseTemporaryRT(TempRT0Id);
-			context.cmd.ReleaseTemporaryRT(TempRT1Id);
 
 			context.renderContext.ExecuteCommandBuffer(context.cmd);
 			context.cmd.Clear();

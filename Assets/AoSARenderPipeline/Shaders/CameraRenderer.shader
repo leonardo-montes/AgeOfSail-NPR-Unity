@@ -35,6 +35,17 @@
 		
 		Pass
 		{
+			Name "Downsample Array"
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment DownsampleArrayPassFragment
+			ENDHLSL
+		}
+		
+		Pass
+		{
 			Name "Horizontal Blur Pass Array"
 			
 			HLSLPROGRAM

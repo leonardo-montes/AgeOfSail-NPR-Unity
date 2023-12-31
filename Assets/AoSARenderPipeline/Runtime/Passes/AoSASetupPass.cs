@@ -18,19 +18,20 @@ namespace AoSA.RenderPipeline
 			context.renderContext.SetupCameraProperties(m_camera);
 			
 			context.cmd.SetGlobalVector(AttachmentSizeID, new Vector4(1.0f / m_attachmentSize.x, 1.0f / m_attachmentSize.y, m_attachmentSize.x, m_attachmentSize.y));
-			
+
 			context.renderContext.ExecuteCommandBuffer(context.cmd);
 			context.cmd.Clear();
 		}
 
-		public static CameraRendererTextures Record(RenderGraph renderGraph, bool useHDR, Vector2Int attachmentSize, Camera camera, int totalLightCount)
+		public static CameraRendererTextures Record(RenderGraph renderGraph, bool useHDR, Vector2Int attachmentSize, Camera camera,
+			AoSARenderPipelineSettings settings, int totalLightCount)
 		{
 			using RenderGraphBuilder builder = renderGraph.AddRenderPass(Sampler.name, out SetupPass pass, Sampler);
 			pass.m_attachmentSize = attachmentSize;
 			pass.m_camera = camera;
 
 			TextureHandle litColorBuffer, shadowedColorBuffer, overlaySaturationBuffer, depthAttachment, warpColor, warpDepth;
-			TextureHandle[] shadowBuffers, blurBuffers;
+			TextureHandle[] shadowBuffers, softBlurBuffers, heavyBlurBuffers, bloomBuffers;
 			TextureDesc desc;
 
 			desc = new TextureDesc(attachmentSize.x, attachmentSize.y)
@@ -71,7 +72,8 @@ namespace AoSA.RenderPipeline
 
 			int bufferCount = 1 + Mathf.CeilToInt((float)(totalLightCount - 1) / 2);
 			shadowBuffers = new TextureHandle[bufferCount];
-			blurBuffers = new TextureHandle[bufferCount];
+			softBlurBuffers = new TextureHandle[bufferCount];
+			heavyBlurBuffers = new TextureHandle[bufferCount];
 			for (int i = 0; i < bufferCount; ++i)
 			{
 				desc = new TextureDesc(attachmentSize.x, attachmentSize.y)
@@ -81,19 +83,38 @@ namespace AoSA.RenderPipeline
 				};
 				shadowBuffers[i] = renderGraph.CreateTexture(desc);
 
+				desc = new TextureDesc(Mathf.CeilToInt(attachmentSize.x / settings.heavyBlurDownsample), Mathf.CeilToInt(attachmentSize.y / settings.heavyBlurDownsample))
+				{
+					colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR),
+					name = string.Format("Heavy Blur Buffer {0}", i)
+				};
+				heavyBlurBuffers[i] = renderGraph.CreateTexture(desc);
+
+				desc = new TextureDesc(Mathf.CeilToInt(attachmentSize.x / settings.softBlurDownsample), Mathf.CeilToInt(attachmentSize.y / settings.softBlurDownsample))
+				{
+					colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR),
+					name = string.Format("Soft Blur Buffer {0}", i)
+				};
+				softBlurBuffers[i] = renderGraph.CreateTexture(desc);
+			}
+			
+			bufferCount = Mathf.CeilToInt((float)(totalLightCount - 1) / 4);
+			bloomBuffers = new TextureHandle[bufferCount];
+			for (int i = 0; i < bufferCount; ++i)
+			{
 				desc = new TextureDesc(attachmentSize.x, attachmentSize.y)
 				{
 					colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR),
-					name = string.Format("Blur Buffer {0}", i)
+					name = string.Format("Bloom Buffer {0}", i)
 				};
-				blurBuffers[i] = renderGraph.CreateTexture(desc);
+				bloomBuffers[i] = renderGraph.CreateTexture(desc);
 			}
 
 			builder.AllowPassCulling(false);
 			builder.SetRenderFunc<SetupPass>((pass, context) => pass.Render(context));
 
 			return new CameraRendererTextures(litColorBuffer, shadowedColorBuffer, overlaySaturationBuffer, depthAttachment,
-				warpColor, warpDepth, shadowBuffers, blurBuffers);
+				warpColor, warpDepth, shadowBuffers, heavyBlurBuffers, softBlurBuffers, bloomBuffers);
 		}
 	}
 }

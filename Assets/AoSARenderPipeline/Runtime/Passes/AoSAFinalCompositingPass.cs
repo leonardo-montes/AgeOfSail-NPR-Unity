@@ -8,33 +8,29 @@ namespace AoSA.RenderPipeline
 	{
 		private static readonly ProfilingSampler m_sampler = new("FinalCompositingPass");
 
-		private static int ShadowThresholdId = Shader.PropertyToID("_ShadowThreshold");
-		private static int ShadowThresholdSoftnessId = Shader.PropertyToID("_ShadowThresholdSoftness");
-		private static int[] SourceIds = new int[7]
+		private static int WarpBloomId = Shader.PropertyToID("_WarpBloom");
+		private static int[] SourceIds = new int[5]
 		{
 			Shader.PropertyToID("_Source0"),
 			Shader.PropertyToID("_Source1"),
 			Shader.PropertyToID("_Source2"),
 			Shader.PropertyToID("_Source3"),
-			Shader.PropertyToID("_Source4"),
-			Shader.PropertyToID("_Source5"),
-			Shader.PropertyToID("_Source6")
+			Shader.PropertyToID("_Source4")
 		};
 
 		private AoSARenderPipelineSettings m_settings;
 		
 		private TextureHandle m_litColorBuffer, m_warpBuffer;
-		private TextureHandle[] m_blurBuffers;
+		private TextureHandle[] m_bloomBuffers;
 
 		void Render(RenderGraphContext context)
 		{
-			context.cmd.SetGlobalFloat(ShadowThresholdId, m_settings.shadowThreshold);
-			context.cmd.SetGlobalFloat(ShadowThresholdSoftnessId, m_settings.shadowThresholdSoftness);
+			context.cmd.SetGlobalFloat(WarpBloomId, m_settings.warpBloom ? 1.0f : 0.0f);
 			
 			context.cmd.SetGlobalTexture(SourceIds[0], m_litColorBuffer);
 			context.cmd.SetGlobalTexture(SourceIds[1], m_warpBuffer);
-			for (int i = 0; i < m_blurBuffers.Length; ++i)
-				context.cmd.SetGlobalTexture(SourceIds[2 + i], m_blurBuffers[i]);
+			for (int i = 0; i < m_bloomBuffers.Length; ++i)
+				context.cmd.SetGlobalTexture(SourceIds[2 + i], m_bloomBuffers[i]);
 
 			context.cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.None);
 			context.cmd.DrawProcedural(Matrix4x4.identity, m_settings.Material, (int)AoSARenderPipeline.Pass.FinalCompositingPass, MeshTopology.Triangles, 3);
@@ -49,7 +45,7 @@ namespace AoSA.RenderPipeline
 			pass.m_settings = settings;
 			pass.m_litColorBuffer = builder.ReadTexture(textures.litColorBuffer);
 			pass.m_warpBuffer = builder.ReadTexture(textures.warpColor);
-			pass.m_blurBuffers = ReadTextures(builder, textures.blurBuffers);
+			pass.m_bloomBuffers = ReadTextures(builder, textures.bloomBuffers);
 			builder.SetRenderFunc<FinalCompositingPass>((pass, context) => pass.Render(context));
 		}
 
