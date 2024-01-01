@@ -383,4 +383,59 @@ float4 FinalCompositingPassFragment (Varyings input) : SV_TARGET
 	return color;
 }
 
+
+// ------------------------------------------------------------------------------------------------------------
+// -                                       DEBUG MULTIPLE PASS                                                -
+// ------------------------------------------------------------------------------------------------------------
+
+int _DebugCount;
+
+float4 DebugMultiplePassFragment (Varyings input) : SV_TARGET
+{
+	float2 uv = input.screenUV;
+
+	if (_DebugCount < 2)
+		return GetSource(_Source0, uv);
+	
+	float4 color = 0.0;
+
+	int cnt, i;
+	float x, y, mask;
+
+	float2 offset = _Source0_TexelSize.xy;
+
+	cnt = ceil(sqrt(_DebugCount));
+
+	TEXTURE2D(sources)[14];
+	sources[0] = _Source0;
+	sources[1] = _Source1;
+	sources[2] = _Source2;
+	sources[3] = _Source3;
+	sources[4] = _Source4;
+	sources[5] = _Source5;
+	sources[6] = _Source6;
+	sources[7] = _Source7;
+	sources[8] = _Source8;
+	sources[9] = _Source9;
+	sources[10] = _Source10;
+	sources[11] = _Source11;
+	sources[12] = _Source12;
+	sources[13] = _Source13;
+
+	for (i = 0; i < _DebugCount; ++i)
+	{
+		float2 cntOff = float(cnt) + offset * cnt;
+		x = (float(i) % cnt) / cntOff.x;
+		y = (cnt - 1 - floor(float(i) / cnt)) / cntOff.y;
+
+		x += (float(i) % cnt) * offset.x;
+		y += floor(float(i) / cnt) * offset.y;
+
+		mask = step(x, uv.x) * step(y, uv.y) * step(uv.x, x + 1.0 / cntOff.x) * step(uv.y, y + 1.0 / cntOff.y);
+		color += GetSource(sources[i], (uv + float2(-x, -y)) * cntOff) * mask;
+	}
+
+	return color;
+}
+
 #endif

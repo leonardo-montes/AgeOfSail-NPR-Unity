@@ -66,7 +66,7 @@ namespace AoS.RenderPipeline
 				UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, textures.colorAttachment, textures.depthAttachment);
 
 				// Final color pass
-				FinalColorPass.Record(renderGraph, settings, textures);
+				FinalColorPass.Record(renderGraph, camera, settings, textures);
 
 				// Gizmos pass
 				GizmosPass.Record(renderGraph, textures.depthAttachment, camera);

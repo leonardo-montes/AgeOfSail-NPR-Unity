@@ -69,7 +69,7 @@ namespace AoSA.RenderPipeline
 				UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, textures.litColorBuffer, textures.depthAttachment);
 
 				// Final compositing pass
-				FinalCompositingPass.Record(renderGraph, settings, overlayColor, saturation, textures);
+				FinalCompositingPass.Record(renderGraph, camera, settings, overlayColor, saturation, textures);
 
 				// Gizmos pass
 				GizmosPass.Record(renderGraph, textures.depthAttachment, camera);

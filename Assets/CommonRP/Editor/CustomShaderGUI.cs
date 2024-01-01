@@ -1,9 +1,10 @@
-﻿using UnityEditor;
+﻿using AoSA.RenderPipeline;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 
-public class AoSCustomShaderGUI : ShaderGUI
+public class CustomShaderGUI : ShaderGUI
 {
 	enum VectorType { Vector2, Vector2Int, Vector3, Vector3Int, Vector4 }
 	enum FramerateMode { Realtime = 0, _24fps = 1, _12fps = 2, _8fps = 3 }
@@ -15,7 +16,7 @@ public class AoSCustomShaderGUI : ShaderGUI
 
 	MaterialProperty[] properties;
 
-	bool showPresets, showWarpPass, showBaseSettings, detailMapSettings, shadowSettings, transparencySettings, normalMapSettings;
+	bool showPresets, showWarpPass, showBaseSettings, shadowSettings, transparencySettings;
 
 	bool Clipping
 	{
@@ -108,12 +109,16 @@ public class AoSCustomShaderGUI : ShaderGUI
 					editor.TextureProperty(prop0, prop0.displayName);
 				}
 				
-				prop0 = FindProperty("_BaseColorOverlay", properties);
-				editor.ColorProperty(prop0, prop0.displayName);
+				bool isAoSA = RenderPipelineManager.currentPipeline.GetType() == typeof(AoSARenderPipeline);
+				if (!isAoSA)
+				{
+					prop0 = FindProperty("_BaseColorOverlay", properties);
+					editor.ColorProperty(prop0, prop0.displayName);
 
-				prop0 = FindProperty("_BaseColorSaturation", properties);
-				editor.FloatProperty(prop0, prop0.displayName);
-				
+					prop0 = FindProperty("_BaseColorSaturation", properties);
+					editor.FloatProperty(prop0, prop0.displayName);
+				}
+
 				// Lit shader only
 				if (FindProperty("_MaskMapToggle", properties, false) != null)
 				{

@@ -8,7 +8,7 @@ namespace AoSA.RenderPipeline
 {
 	public partial class AoSARenderPipeline : UnityEngine.Rendering.RenderPipeline
 	{
-		public enum Pass { Copy, CopyArray, DownsampleArray, BlurHorizontalArray, BlurVerticalArray, CompositingPass, FinalCompositingPass }
+		public enum Pass { Copy, CopyArray, DownsampleArray, BlurHorizontalArray, BlurVerticalArray, CompositingPass, FinalCompositingPass, DebugMultiple }
 
 		private readonly CameraRenderer m_renderer;
 		private readonly AoSARenderPipelineSettings m_settings;

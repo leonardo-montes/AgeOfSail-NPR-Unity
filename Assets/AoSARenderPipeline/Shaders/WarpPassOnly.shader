@@ -51,5 +51,5 @@
 		}
 	}
 
-	CustomEditor "AoSCustomShaderGUI"
+	CustomEditor "CustomShaderGUI"
 }

@@ -87,5 +87,16 @@
 				#pragma fragment FinalCompositingPassFragment
 			ENDHLSL
 		}
+		
+		Pass
+		{
+			Name "Debug Multiple"
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment DebugMultiplePassFragment
+			ENDHLSL
+		}
 	}
 }
