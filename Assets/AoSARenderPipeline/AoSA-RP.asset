@@ -30,8 +30,8 @@ MonoBehaviour:
         atlasSize: 1024
         filter: 0
     shader: {fileID: 4800000, guid: 0ec62775f58ec37408409b24561faa7f, type: 3}
-    warpTexture: {fileID: 2800000, guid: f95d162f777cae64aa9214ba2071d740, type: 3}
-    warpGlobalScale: 200
+    warpTexture: {fileID: 2800000, guid: 8b76e6ee8fdb89344b2c1167eb8c98e3, type: 3}
+    warpGlobalScale: 128
     warpGlobalDistanceFade: 0.1
     warpWidth: 0.003
     softBlurDownsample: 2

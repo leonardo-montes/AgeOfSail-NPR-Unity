@@ -39,7 +39,6 @@ I want to emphasize that this project is an experiment and does not prioritize a
 - [X] Mesh importer support for open meshes (like planes, tubes, etc.).
 - [X] Alternative render pipeline (AoSA RP) supporting colored lights.
     - supports up to 10 lights (directional, point, and spot) with blurred shadows and specular highlights.
-- [ ] Replace test textures with ones resembling the paper's textures.
 
 ![Screenshot of colored lights in Unity.](/screenshotColoredLights.jpg)
 
