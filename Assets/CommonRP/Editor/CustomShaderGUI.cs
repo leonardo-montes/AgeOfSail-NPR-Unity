@@ -1,8 +1,8 @@
-﻿using AoSA.RenderPipeline;
+﻿#if UNITY_EDITOR
+using AoSA.RenderPipeline;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.UI;
 
 public class CustomShaderGUI : ShaderGUI
 {
@@ -524,3 +524,4 @@ public class CustomShaderGUI : ShaderGUI
 		}
 	}
 }
+#endif

@@ -20,7 +20,7 @@ namespace AoSA.RenderPipeline
 		private static readonly int WarpGlobalDistanceFadeId = Shader.PropertyToID("_WarpGlobalDistanceFade");
 		private static readonly int LineBoilTimeId = Shader.PropertyToID("_LineBoilTime");
 
-		private static readonly Color ClearColor = new Color(0.5f, 0.5f, 0.0f, 1.0f);
+		public static readonly Color ClearColor = new Color(0.5f, 0.5f, 0.0f, 1.0f);
 
 		private RendererListHandle m_list;
 		private TextureHandle m_warpColor, m_warpDepth;

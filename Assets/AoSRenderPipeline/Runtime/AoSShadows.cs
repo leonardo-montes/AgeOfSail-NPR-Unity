@@ -66,13 +66,15 @@ namespace AoS.RenderPipeline
 			m_settings = settings;
 		}
 
-		public Vector4 ReserveDirectionalShadows(Light light)
+		public Vector4 ReserveDirectionalShadows(Light light, out bool hasValidShadows)
 		{
+			hasValidShadows = false;
 			if (light.shadows != LightShadows.None && light.shadowStrength > 0f)
 			{
 				if (!m_cullingResults.GetShadowCasterBounds(0, out _))
 					return new Vector4(-light.shadowStrength, 0f, 0f, -1);
 
+				hasValidShadows = true;
 				m_shadowedDirectionalLight = new ShadowedDirectionalLight
 				{
 					visibleLightIndex = 0,
@@ -123,7 +125,7 @@ namespace AoS.RenderPipeline
 			m_buffer.SetGlobalFloat(ShadowPancakingId, 1f);
 			m_buffer.BeginSample("Directional Shadows");
 			ExecuteBuffer();
-
+			
 			if (render)
 			{
 				int tiles = m_settings.directional.cascadeCount;

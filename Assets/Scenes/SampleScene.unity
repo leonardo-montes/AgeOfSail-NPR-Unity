@@ -5575,7 +5575,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &334225330
 Transform:
   m_ObjectHideFlags: 0
@@ -5959,6 +5959,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Cylinder
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: b07b60089fc5418449007d1e3f760173, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6059,7 +6063,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &627753263
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6591,6 +6595,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 313002a67c779a5438cbd3f460397b1c, type: 3}
       propertyPath: m_Name
       value: Cube
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 313002a67c779a5438cbd3f460397b1c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7867,6 +7875,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Plane
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c8cb4e1ae66239f42adcfc27e7915206, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2673312850796824899, guid: c8cb4e1ae66239f42adcfc27e7915206, type: 3}
       propertyPath: m_Enabled
       value: 1
@@ -8155,6 +8167,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: ac9c038b3b6f98a44a81c8832d11b96a, type: 3}
       propertyPath: m_Name
       value: Sphere
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: ac9c038b3b6f98a44a81c8832d11b96a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

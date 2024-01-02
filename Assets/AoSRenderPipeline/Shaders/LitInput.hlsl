@@ -95,7 +95,7 @@ float GetSmoothness (InputConfig c)
 		return INPUT_PROP(_BaseColorOverlay);
 	}
 
-	float4 GetBaseColorSaturation()
+	float GetBaseColorSaturation()
 	{
 		return INPUT_PROP(_BaseColorSaturation);
 	}

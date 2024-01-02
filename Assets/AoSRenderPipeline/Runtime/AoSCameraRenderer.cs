@@ -45,7 +45,7 @@ namespace AoS.RenderPipeline
 
 				// 'Depth pass'
 				//  Process a single directional light and its shadow cascades.
-				ShadowTextures shadowTextures = DepthPass.Record(renderGraph, cullingResults, camera, settings.shadows);
+				ShadowTextures shadowTextures = DepthPass.Record(renderGraph, cullingResults, camera, settings.shadows, out bool hasLight);
 
 				// Setup
 				//  Register all the different textures and setup the camera for rendering.
@@ -58,7 +58,7 @@ namespace AoS.RenderPipeline
 
 				// 'Shadow pass'
 				//  Render the scene geometry and process lighting.
-				RendererListHandle listHandle = ShadowPass.Record(renderGraph, camera, cullingResults, textures, shadowTextures);
+				RendererListHandle listHandle = ShadowPass.Record(renderGraph, camera, cullingResults, textures, shadowTextures, hasLight);
 
 				// 'Blur pass'
 				//  Blurs the previous 'Shadow pass' two times to be used in the following pass (rounded shadows, inner glow in shadows, bloom).
@@ -66,7 +66,7 @@ namespace AoS.RenderPipeline
 
 				// 'Final shadow pass'
 				//  Composite the previous 'blur pass' textures and 'shadow pass' texture into a single texture.
-				FinalShadowPass.Record(renderGraph, settings, textures);
+				FinalShadowPass.Record(renderGraph, settings, textures, listHandle);
 
 				// 'Color pass'
 				//  Render the scene geometry and use the 'Final shadow pass' result to lerp between lit and shadowed textures.

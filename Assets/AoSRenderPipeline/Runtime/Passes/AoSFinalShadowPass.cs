@@ -37,7 +37,7 @@ namespace AoS.RenderPipeline
 			context.cmd.Clear();
 		}
 
-		public static void Record(RenderGraph renderGraph, AoSRenderPipelineSettings settings, in CameraRendererTextures textures)
+		public static void Record(RenderGraph renderGraph, AoSRenderPipelineSettings settings, in CameraRendererTextures textures, RendererListHandle listHandle)
 		{
 			using RenderGraphBuilder builder = renderGraph.AddRenderPass(Sampler.name, out FinalShadowPass pass, Sampler);
 
@@ -47,6 +47,8 @@ namespace AoS.RenderPipeline
 			pass.m_finalShadowBuffer = builder.WriteTexture(textures.finalShadowBuffer);
 			pass.m_heavyBlurBuffer = builder.ReadTexture(textures.heavyBlurBuffer);
 			pass.m_softBlurBuffer = builder.ReadTexture(textures.softBlurBuffer);
+
+			builder.DependsOn(listHandle);
 			
 			builder.SetRenderFunc<FinalShadowPass>((pass, context) => pass.Render(context));
 		}

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 
 namespace AoSA.RenderPipeline
@@ -16,3 +17,4 @@ namespace AoSA.RenderPipeline
         }
     }
 }
+#endif

@@ -1,5 +1,4 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
@@ -80,7 +79,7 @@ namespace AoSA.RenderPipeline
 		private void RenderDebug (CommandBuffer buffer)
 		{
 			Pass pass;
-			string name = SceneView.currentDrawingSceneView.cameraMode.name;
+			string name = UnityEditor.SceneView.currentDrawingSceneView.cameraMode.name;
 			if (name == AdditionalCameraModes.Warp.ToString() ||
 				name == AdditionalCameraModes.LitColor.ToString() ||
 				name == AdditionalCameraModes.ShadowedColor.ToString())
@@ -124,7 +123,7 @@ namespace AoSA.RenderPipeline
 #if UNITY_EDITOR
 			if (RenderPipelineHelper.IsDebugRender(camera, AdditionalDrawModes.Section))
 			{
-				string name = SceneView.currentDrawingSceneView.cameraMode.name;
+				string name = UnityEditor.SceneView.currentDrawingSceneView.cameraMode.name;
 				if (name == AdditionalCameraModes.Warp.ToString())
 					pass.m_debugBuffer = builder.ReadTexture(textures.warpColor);
 				else if (name == AdditionalCameraModes.LitColor.ToString())
@@ -147,7 +146,7 @@ namespace AoSA.RenderPipeline
 #else
 			pass.m_litColorBuffer = builder.ReadTexture(textures.litColorBuffer);
 			pass.m_warpBuffer = builder.ReadTexture(textures.warpColor);
-			pass.m_bloomBuffers = ReadTextures(builder, textures.bloomBuffers);
+			pass.m_bloomBuffers = builder.ReadTextures(textures.bloomBuffers);
 #endif
 		}
 	}

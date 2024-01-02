@@ -14,7 +14,7 @@ float IncomingLight (float3 normal, Light light)
 float SpecularHighlight (float3 viewDirection, float3 normal, float smoothness, Light light)
 {	
 	float3 halfVector = normalize(light.direction + viewDirection);
-	float NdotH = dot(normal, halfVector);
+	float NdotH = saturate(dot(normal, halfVector));
 	float specularIntensity = pow(NdotH, 1.0 / max(0.001, smoothness * smoothness)) * step(0.001, smoothness);
 	return step(0.5, light.attenuation * specularIntensity);
 }

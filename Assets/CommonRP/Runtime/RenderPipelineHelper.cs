@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -83,8 +80,9 @@ public static class RenderPipelineHelper
     /// <returns>Returns true if we need to render a specific buffer.</returns>
     public static bool IsDebugRender (Camera camera, string section)
     {
-        return camera.cameraType == CameraType.SceneView && SceneView.currentDrawingSceneView.cameraMode.drawMode == DrawCameraMode.UserDefined &&
-                SceneView.currentDrawingSceneView.cameraMode.section == section;
+        return camera.cameraType == CameraType.SceneView &&
+                UnityEditor.SceneView.currentDrawingSceneView.cameraMode.drawMode == UnityEditor.DrawCameraMode.UserDefined &&
+                UnityEditor.SceneView.currentDrawingSceneView.cameraMode.section == section;
     }
 #endif
 

@@ -1,4 +1,4 @@
-using System.Collections;
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -92,3 +92,4 @@ public class CustomMeshPostProcessor : AssetPostprocessor
         MeshRenderer meshRenderer = inflationMeshGameObject.AddComponent<MeshRenderer>();
     }
 }
+#endif

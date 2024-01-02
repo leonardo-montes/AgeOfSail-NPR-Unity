@@ -20,7 +20,7 @@ namespace AoS.RenderPipeline
 		private static readonly int WarpGlobalDistanceFadeId = Shader.PropertyToID("_WarpGlobalDistanceFade");
 		private static readonly int LineBoilTimeId = Shader.PropertyToID("_LineBoilTime");
 
-		private static readonly Color ClearColor = new Color(0.5f, 0.5f, 0.0f, 1.0f);
+		public static readonly Color ClearColor = new Color(0.5f, 0.5f, 0.0f, 1.0f);
 
 		private RendererListHandle m_list;
 		private TextureHandle m_warpColor, m_warpDepth;
@@ -30,7 +30,6 @@ namespace AoS.RenderPipeline
 		{
 			// Set and clear the render target
 			context.cmd.SetRenderTarget(m_warpColor, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_warpDepth, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-			context.cmd.ClearRenderTarget(true, true, ClearColor);
 
 			// Set shader properties
 			float t = (float)(Time.realtimeSinceStartupAsDouble % 3600.0);

@@ -422,7 +422,8 @@ float4 DebugMultiplePassFragment (Varyings input) : SV_TARGET
 	sources[12] = _Source12;
 	sources[13] = _Source13;
 
-	for (i = 0; i < _DebugCount; ++i)
+	[unroll]
+	for (i = 0; i < 14; ++i)
 	{
 		float2 cntOff = float(cnt) + offset * cnt;
 		x = (float(i) % cnt) / cntOff.x;

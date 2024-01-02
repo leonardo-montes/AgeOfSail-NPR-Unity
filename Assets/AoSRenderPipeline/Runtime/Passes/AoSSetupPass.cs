@@ -13,6 +13,8 @@ namespace AoS.RenderPipeline
 		private static readonly ProfilingSampler Sampler = new("Setup");
 		private static readonly int AttachmentSizeID = Shader.PropertyToID("_CameraBufferSize");
 
+		private TextureHandle m_colorAttachment, m_depthAttachment, m_warpColor, m_warpDepth;
+
 		private Vector2Int m_attachmentSize;
 		private Camera m_camera;
 
@@ -22,12 +24,18 @@ namespace AoS.RenderPipeline
 			context.renderContext.SetupCameraProperties(m_camera);
 
 			// Set resolution for shaders
-			CommandBuffer cmd = context.cmd;
-			cmd.SetGlobalVector(AttachmentSizeID, new Vector4(1.0f / m_attachmentSize.x, 1.0f / m_attachmentSize.y, m_attachmentSize.x, m_attachmentSize.y));
+			context.cmd.SetGlobalVector(AttachmentSizeID, new Vector4(1.0f / m_attachmentSize.x, 1.0f / m_attachmentSize.y, m_attachmentSize.x, m_attachmentSize.y));
+
+			// Clear targets
+			context.cmd.SetRenderTarget(m_colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_depthAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+			context.cmd.ClearRenderTarget(true, true, m_camera.backgroundColor.linear);
+
+			context.cmd.SetRenderTarget(m_warpColor, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_warpDepth, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+			context.cmd.ClearRenderTarget(true, true, WarpPass.ClearColor);
 			
 			// Execute the command buffer
-			context.renderContext.ExecuteCommandBuffer(cmd);
-			cmd.Clear();
+			context.renderContext.ExecuteCommandBuffer(context.cmd);
+			context.cmd.Clear();
 		}
 
 		public static CameraRendererTextures Record(RenderGraph renderGraph, bool useHDR, Vector2Int attachmentSize, Camera camera, AoSRenderPipelineSettings settings)
@@ -46,7 +54,7 @@ namespace AoS.RenderPipeline
 				colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR),
 				name = "Color Attachment"
 			};
-			colorAttachment = renderGraph.CreateTexture(desc);
+			colorAttachment = pass.m_colorAttachment = builder.WriteTexture(renderGraph.CreateTexture(desc));
 
 			// Register the final shadow buffer
 			desc.name = "Final Shadow Buffer";
@@ -55,7 +63,7 @@ namespace AoS.RenderPipeline
 			// Register the depth texture
 			desc.depthBufferBits = DepthBits.Depth32;
 			desc.name = "Depth Attachment";
-			depthAttachment = renderGraph.CreateTexture(desc);
+			depthAttachment = pass.m_depthAttachment = builder.WriteTexture(renderGraph.CreateTexture(desc));
 
 			// Register the warp color and depth textures
 			desc = new TextureDesc(attachmentSize.x, attachmentSize.y)
@@ -63,11 +71,11 @@ namespace AoS.RenderPipeline
 				colorFormat = GraphicsFormat.R8G8_UNorm,
 				name = "Warp Pass Color"
 			};
-			warpColor = renderGraph.CreateTexture(desc);
+			warpColor = pass.m_warpColor = builder.WriteTexture(renderGraph.CreateTexture(desc));
 
 			desc.depthBufferBits = DepthBits.Depth32;
 			desc.name = "Warp Pass Depth";
-			warpDepth = renderGraph.CreateTexture(desc);
+			warpDepth = pass.m_warpDepth = builder.WriteTexture(renderGraph.CreateTexture(desc));
 
 			// Register the heavy blur buffer
 			desc = new TextureDesc(Mathf.CeilToInt(attachmentSize.x / settings.heavyBlurDownsample), Mathf.CeilToInt(attachmentSize.y / settings.heavyBlurDownsample))

@@ -13,6 +13,8 @@ namespace AoSA.RenderPipeline
 		private static readonly ProfilingSampler Sampler = new("Setup");
 		private static readonly int AttachmentSizeID = Shader.PropertyToID("_CameraBufferSize");
 
+		private TextureHandle m_colorAttachment, m_depthAttachment, m_warpColor, m_warpDepth;
+
 		private Vector2Int m_attachmentSize;
 		private Camera m_camera;
 
@@ -23,6 +25,13 @@ namespace AoSA.RenderPipeline
 			
 			// Set resolution for shaders
 			context.cmd.SetGlobalVector(AttachmentSizeID, new Vector4(1.0f / m_attachmentSize.x, 1.0f / m_attachmentSize.y, m_attachmentSize.x, m_attachmentSize.y));
+
+			// Clear targets
+			context.cmd.SetRenderTarget(m_colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_depthAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+			context.cmd.ClearRenderTarget(true, true, m_camera.backgroundColor.linear);
+
+			context.cmd.SetRenderTarget(m_warpColor, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_warpDepth, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+			context.cmd.ClearRenderTarget(true, true, WarpPass.ClearColor);
 
 			// Execute the command buffer
 			context.renderContext.ExecuteCommandBuffer(context.cmd);
@@ -50,7 +59,7 @@ namespace AoSA.RenderPipeline
 				colorFormat = format,
 				name = "Lit Color Buffer"
 			};
-			litColorBuffer = renderGraph.CreateTexture(desc);
+			litColorBuffer = pass.m_colorAttachment = builder.WriteTexture(renderGraph.CreateTexture(desc));
 
 			desc.name = "Shadowed Color Buffer";
 			shadowedColorBuffer = renderGraph.CreateTexture(desc);
@@ -76,7 +85,7 @@ namespace AoSA.RenderPipeline
 			// Depth buffer
 			desc.depthBufferBits = DepthBits.Depth32;
 			desc.name = "Depth Attachment";
-			depthAttachment = renderGraph.CreateTexture(desc);
+			depthAttachment = pass.m_depthAttachment = builder.WriteTexture(renderGraph.CreateTexture(desc));
 
 			// Warp buffer (color and depth)
 			desc = new TextureDesc(attachmentSize.x, attachmentSize.y)
@@ -84,11 +93,11 @@ namespace AoSA.RenderPipeline
 				colorFormat = GraphicsFormat.R8G8_UNorm,
 				name = "Warp Pass Color"
 			};
-			warpColor = renderGraph.CreateTexture(desc);
+			warpColor = pass.m_warpColor = builder.WriteTexture(renderGraph.CreateTexture(desc));
 
 			desc.depthBufferBits = DepthBits.Depth32;
 			desc.name = "Warp Pass Depth";
-			warpDepth = renderGraph.CreateTexture(desc);
+			warpDepth = pass.m_warpDepth = builder.WriteTexture(renderGraph.CreateTexture(desc));
 
 			// Soft blur buffers
 			softBlurBuffers = new TextureHandle[bufferCount];

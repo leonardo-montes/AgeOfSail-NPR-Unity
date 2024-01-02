@@ -12,6 +12,8 @@ namespace AoS.RenderPipeline
 	/// </summary>
 	public class DepthPass
 	{
+		public enum LightStatus { HasShadows, NoShadows, NoLight }
+
 		private static readonly ProfilingSampler Sampler = new("Depth Pass");
 
 		private static readonly int DirLightDirectionAndMaskId = Shader.PropertyToID("_DirectionalLightDirectionAndMask");
@@ -24,14 +26,14 @@ namespace AoS.RenderPipeline
 
 		private readonly Shadows m_shadows = new();
 
-		private bool m_setupComplete = false;
+		private LightStatus m_setupStatus = LightStatus.NoLight;
 		private Camera m_camera;
 
 		/// <summary>
 		/// Setup the light and its shadows before rendering.
 		/// </summary>
 		/// <returns>Returns true if a light was indeed rendered.</returns>
-		public bool Setup(CullingResults cullingResults, ShadowSettings shadowSettings)
+		public LightStatus Setup(CullingResults cullingResults, ShadowSettings shadowSettings)
 		{
 			m_cullingResults = cullingResults;
 			m_shadows.Setup(cullingResults, shadowSettings);
@@ -42,26 +44,33 @@ namespace AoS.RenderPipeline
 		/// Setup the directional light if there is one.
 		/// </summary>
 		/// <returns>Returns true if there was a light to render.</returns>
-		private bool SetupLight()
+		private LightStatus SetupLight()
 		{
 			NativeArray<VisibleLight> visibleLights = m_cullingResults.visibleLights;
 
 			if (visibleLights.Length <= 0)
-				return false;
-
-			VisibleLight visibleLight = visibleLights[0];
-			Light light = visibleLight.light;
-			if (light.renderingLayerMask != 0)
+				return LightStatus.NoLight;
+			
+			LightStatus foundDirLight = LightStatus.NoLight;
+			for (int i = 0; i < visibleLights.Length; i++)
 			{
-				switch (visibleLight.lightType)
+				VisibleLight visibleLight = visibleLights[i];
+				Light light = visibleLight.light;
+				if (light.renderingLayerMask != 0)
 				{
-					case LightType.Directional:
-						SetupDirectionalLight(ref visibleLight, light);
+					switch (visibleLight.lightType)
+					{
+						case LightType.Directional:
+							foundDirLight = SetupDirectionalLight(ref visibleLight, light);
+							break;
+					}
+				
+					if (foundDirLight != LightStatus.NoLight)
 						break;
 				}
 			}
 
-			return true;
+			return foundDirLight;
 		}
 
 		/// <summary>
@@ -73,7 +82,7 @@ namespace AoS.RenderPipeline
 			buffer.SetGlobalVector(DirLightDirectionAndMaskId, DirLightDirectionAndMask);
 			buffer.SetGlobalVector(DirLightShadowDataId, DirLightShadowData);
 
-			m_shadows.Render(context, m_setupComplete && m_camera.cameraType <= CameraType.SceneView);
+			m_shadows.Render(context, m_setupStatus == LightStatus.HasShadows && m_camera.cameraType <= CameraType.SceneView);
 
 			context.renderContext.ExecuteCommandBuffer(buffer);
 			buffer.Clear();
@@ -82,26 +91,28 @@ namespace AoS.RenderPipeline
 		/// <summary>
 		/// Setup the directional light.
 		/// </summary>
-		private void SetupDirectionalLight(ref VisibleLight visibleLight, Light light)
+		private LightStatus SetupDirectionalLight(ref VisibleLight visibleLight, Light light)
 		{
 			Vector4 dirAndMask = -visibleLight.localToWorldMatrix.GetColumn(2);
 			dirAndMask.w = light.renderingLayerMask.ReinterpretAsFloat();
 			DirLightDirectionAndMask = dirAndMask;
-			DirLightShadowData = m_shadows.ReserveDirectionalShadows(light);
+			DirLightShadowData = m_shadows.ReserveDirectionalShadows(light, out bool hasValidShadows);
+			return hasValidShadows ? LightStatus.HasShadows : LightStatus.NoShadows;
 		}
 
-		public static ShadowTextures Record(RenderGraph renderGraph, CullingResults cullingResults, Camera camera, ShadowSettings shadowSettings)
+		public static ShadowTextures Record(RenderGraph renderGraph, CullingResults cullingResults, Camera camera, ShadowSettings shadowSettings, out bool hasLight)
 		{
 			using RenderGraphBuilder builder = renderGraph.AddRenderPass(Sampler.name, out DepthPass pass, Sampler);
 
 			pass.m_camera = camera;
-			pass.m_setupComplete = pass.Setup(cullingResults, shadowSettings);
+			pass.m_setupStatus = pass.Setup(cullingResults, shadowSettings);
 
 			builder.SetRenderFunc<DepthPass>((pass, context) => pass.Render(context));
 
 			// Force this pass to always execute even if there is no scene geometry to render.
 			builder.AllowPassCulling(false);
 
+			hasLight = pass.m_setupStatus != LightStatus.NoLight;
 			return pass.m_shadows.GetRenderTextures(renderGraph, builder);
 		}
 	}

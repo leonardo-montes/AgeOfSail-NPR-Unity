@@ -84,10 +84,10 @@ float4 ShadowPassFragment (Varyings input) : SV_TARGET
 
 	// Overlay
 	float4 colorOverlay = GetBaseColorOverlay();
-	color = lerp(color, BlendMode_Overlay(color, colorOverlay.rgb), colorOverlay.a);
+	color.rgb = lerp(color.rgb, BlendMode_Overlay(color.rgb, colorOverlay.rgb), colorOverlay.a);
 
 	// Saturation
-	color = Saturation(color, GetBaseColorSaturation());
+	color.rgb = Saturation(color.rgb, GetBaseColorSaturation());
 	
 	return float4(color, GetFinalAlpha(base.a));
 }

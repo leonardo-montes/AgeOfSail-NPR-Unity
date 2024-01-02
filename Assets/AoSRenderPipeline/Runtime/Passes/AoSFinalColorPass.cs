@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEditor;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
@@ -91,7 +90,7 @@ namespace AoS.RenderPipeline
 #if UNITY_EDITOR
 			if (RenderPipelineHelper.IsDebugRender(camera, AdditionalDrawModes.Section))
 			{
-				string name = SceneView.currentDrawingSceneView.cameraMode.name;
+				string name = UnityEditor.SceneView.currentDrawingSceneView.cameraMode.name;
 				if (name == AdditionalCameraModes.Warp.ToString())
 					pass.m_debugBuffer = builder.ReadTexture(textures.warpColor);
 				else if (name == AdditionalCameraModes.FinalShadow.ToString())
