@@ -8,7 +8,10 @@ public class CustomShaderGUI : ShaderGUI
 {
 	enum VectorType { Vector2, Vector2Int, Vector3, Vector3Int, Vector4 }
 	enum FramerateMode { Realtime = 0, _24fps = 1, _12fps = 2, _8fps = 3 }
+	enum ReorientMode { None = 0, Contour = 1, All = 2 }
 	enum ZWriteMode { Off = 0, On = 1 }
+
+	private static string[] ReorientModeKeyword = new string[] { "_REORIENT_NONE", "_REORIENT_CONTOUR", "_REORIENT_ALL" };
 
 	MaterialEditor editor;
 
@@ -174,6 +177,8 @@ public class CustomShaderGUI : ShaderGUI
 				DrawPropertyEnum<FramerateMode>("_AnimatedLineBoilFramerate");
 				GUI.enabled = isEnabled;
 				--EditorGUI.indentLevel;
+				
+				DrawPropertyEnum<ReorientMode>("_Reorient", ReorientModeKeyword);
 
 				DrawPropertyVector("_WorldSpaceUVGradient", VectorType.Vector2);
 				
@@ -312,6 +317,25 @@ public class CustomShaderGUI : ShaderGUI
 		EditorGUI.showMixedValue = false;
 		if (EditorGUI.EndChangeCheck())
 			property.floatValue = System.Convert.ToInt32(value);
+	}
+
+	void DrawPropertyEnum<T>(string propertyName, string[] keyword) where T : System.Enum
+	{
+		MaterialProperty property = FindProperty(propertyName, properties, false);
+		if (property == null) return;
+		T value = (T)System.Enum.ToObject(typeof(T), (int)property.floatValue);
+
+		EditorGUI.BeginChangeCheck();
+		EditorGUI.showMixedValue = property.hasMixedValue;
+		value = (T)EditorGUILayout.EnumPopup(property.displayName, value);
+		EditorGUI.showMixedValue = false;
+		if (EditorGUI.EndChangeCheck())
+		{
+			int newValue = System.Convert.ToInt32(value);
+			property.floatValue = newValue;
+			for (int i = 0; i < keyword.Length; ++i)
+				SetKeyword(keyword[i], i == newValue);
+		}
 	}
 
 	void DrawPropertyShadowEnumKeyword(string propertyName)
@@ -456,8 +480,7 @@ public class CustomShaderGUI : ShaderGUI
 		return false;
 	}
 
-	bool HasProperty(string name) =>
-		FindProperty(name, properties, false) != null;
+	bool HasProperty(string name) => FindProperty(name, properties, false) != null;
 
 	void SetProperty (string name, string keyword, bool value)
 	{
@@ -520,7 +543,7 @@ public class CustomShaderGUI : ShaderGUI
 		bool enabled = warpPass.floatValue != 0.0f;
 		foreach (Material m in materials)
 		{
-			m.SetShaderPassEnabled("Warp", enabled);
+			m.SetShaderPassEnabled("WarpPass", enabled);
 		}
 	}
 }

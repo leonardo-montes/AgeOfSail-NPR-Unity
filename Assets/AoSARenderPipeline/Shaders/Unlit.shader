@@ -24,6 +24,7 @@
 		[Toggle(_COMPENSATE_DISTANCE)] _CompensateDistance ("Compensate for distance", Float) = 0
 		[Toggle(_USE_ANIMATED_LINE_BOIL)] _UseAnimatedLineBoil ("Use animated line boil", Float) = 0
 		[Enum(Realtime, 0, 24fps, 1, 12fps, 2, 8fps, 3)] _AnimatedLineBoilFramerate ("Framerate", Float) = 3
+		[KeywordEnum(None, Contour, All)] _Reorient ("Reorient", Float) = 0
 		_WorldSpaceUVGradient("World Space UV Gradient", Vector) = (1, 1, 0, 0)
 		_WarpDistanceFadeMultiplier("Distance fade multiplier", Float) = 1.0
 		_WarpWidthMultiplier("Width (aka warp amount) multiplier", Float) = 1.0
@@ -109,6 +110,7 @@
 			#pragma shader_feature _COMPENSATE_SKEW
 			#pragma shader_feature _COMPENSATE_DISTANCE
 			#pragma shader_feature _USE_ANIMATED_LINE_BOIL
+			#pragma multi_compile _ _REORIENT_CONTOUR _REORIENT_ALL
 			#pragma multi_compile_instancing
 			#pragma vertex WarpPassVertex
 			#pragma fragment WarpPassFragment

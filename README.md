@@ -15,7 +15,7 @@ I want to emphasize that this project is an experiment and does not prioritize a
     - [X] 3.2. Approximate smooth UV gradients
     - [X] 3.3. Compensating for radial angle
     - [x] 3.4. Compensating for skew
-    - [ ] 3.5. Orienting texture to indicate contour
+    - [X] 3.5. Orienting texture to indicate contour
     - [x] 3.6. Compensating for contrast reduction
 
 - 4. Edge Breakup

@@ -163,8 +163,8 @@ float4 WarpPassFragment (Varyings input) : SV_TARGET
 
 	// '4.3. Compensating for camera roll'
 	float2 heading = normalize(gradU);
-	warp.rg -= 0.5;
-	warp.rg = float2(warp.r * heading.x + warp.g * heading.y, warp.r * heading.y - warp.g * heading.x) + 0.5;
+	//warp.rg -= 0.5;
+	//warp.rg = float2(warp.r * heading.x + warp.g * heading.y, warp.r * heading.y - warp.g * heading.x) + 0.5;
 
     // '4.4. Compensating for distance'
 	#if defined(_COMPENSATE_DISTANCE)

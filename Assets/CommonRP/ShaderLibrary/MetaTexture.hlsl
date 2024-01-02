@@ -69,6 +69,61 @@ float GetRadialAngleCompensationCoefficient(float2 S, float4x4 P)
     return lenQ * lenQ + 1.0;
 }
 
+// Implementing '3.5. Orienting texture to indicate contour'
+// _REORIENT_CONTOUR: Reorients the direction of the texture (switches X and Y values of the UVs) to follow the contours of the mesh using
+//                    the relative magnitudes of ∇u and ∇v. This is how they do it in the short film 'Age of Sail'.
+// _REORIENT_ALL: Simply reorients the direction of the texture by switching X and Y values of the UVs. This is especially helpful for some
+//                meshes like a cylinder mesh which would not have its UVs reoriented using the _REORIENT_CONTOUR method presented in the
+//                original paper.
+// This effect can be deactivated too by simply not modifying the UVs.
+void Reorient(in float diff, inout float2 uv0, inout float2 uv1, inout float2 uv2, inout float2 uv3)
+{
+#if defined(_REORIENT_CONTOUR)
+    float diffA = step( 1.0, diff);
+    float diffB = step( 0.0, diff);
+    float diffC = step(-1.0, diff);
+    
+    uv0.xy = lerp(uv0.xy, uv0.yx, diffB);
+    uv1.xy = lerp(uv1.xy, uv1.yx, diffA);
+    uv2.xy = lerp(uv2.xy, uv2.yx, diffC);
+    uv3.xy = lerp(uv3.xy, uv3.yx, diffB);
+#elif defined(_REORIENT_ALL)
+    uv0.xy = uv0.yx;
+    uv1.xy = uv1.yx;
+    uv2.xy = uv2.yx;
+    uv3.xy = uv3.yx;
+#endif
+}
+void Reorient(in float diff, inout float2 uv00, inout float2 uv01, inout float2 uv02, inout float2 uv03,
+                             inout float2 uv10, inout float2 uv11, inout float2 uv12, inout float2 uv13)
+{
+#if defined(_REORIENT_CONTOUR)
+    float diffA = step( 1.0, diff);
+    float diffB = step( 0.0, diff);
+    float diffC = step(-1.0, diff);
+
+    uv00.xy = lerp(uv00.xy, uv00.yx, diffB);
+    uv01.xy = lerp(uv01.xy, uv01.yx, diffA);
+    uv02.xy = lerp(uv02.xy, uv02.yx, diffC);
+    uv03.xy = lerp(uv03.xy, uv03.yx, diffB);
+
+    uv10.xy = lerp(uv10.xy, uv10.yx, diffB);
+    uv11.xy = lerp(uv11.xy, uv11.yx, diffA);
+    uv12.xy = lerp(uv12.xy, uv12.yx, diffC);
+    uv13.xy = lerp(uv13.xy, uv13.yx, diffB);
+#elif defined(_REORIENT_ALL)
+    uv00.xy = uv00.yx;
+    uv01.xy = uv01.yx;
+    uv02.xy = uv02.yx;
+    uv03.xy = uv03.yx;
+
+    uv10.xy = uv10.yx;
+    uv11.xy = uv11.yx;
+    uv12.xy = uv12.yx;
+    uv13.xy = uv13.yx;
+#endif
+}
+
 // Implementing '3.6. Compensating for contrast reduction'
 float4 Contrast(float4 color, float contrast)
 {
@@ -136,13 +191,14 @@ float4 SampleMetaTexture(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv, float
     //
     // float2 E = float2(log2(S.x), log2(S.y));
     float2 E = log2(S);
+    float2 flooredE = floor(E);
 
     // Eq.3
     // U₀ = { 2⌊ᴱᵘ⌋u, 2⌊ᴱᵛ⌋v }
     // 
     // float2 uv0 = float2(pow(2, (floor(E.x))) * uv.x, pow(2, (floor(E.y))) * uv.y);
     // float2 uv0 = float2(exp2(floor(E.x)) * uv.x, exp2(floor(E.y)) * uv.y);
-    float2 uv0 = exp2(floor(E)) * uv;
+    float2 uv0 = exp2(flooredE) * uv;
 
     // Eq.4 (Error in original paper: Eq.4 and Eq.5 are inverted)
     // U₁ = { 2u₀, v₀ }
@@ -156,6 +212,9 @@ float4 SampleMetaTexture(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv, float
     // U₃ = { 2u₀, 2v₀ }
     float2 uv3 = float2(2 * uv0.x, 2 * uv0.y);
 
+    // '3.5. Orienting texture to indicate contour'
+    Reorient(flooredE.x - flooredE.y, uv0, uv1, uv2, uv3);
+    
     // Eq.7
     // B = { β(Eᵤ − ⌊Eᵤ⌋), β(Eᵥ − ⌊Eᵥ⌋) }
     //
@@ -266,7 +325,8 @@ float4 SampleMetaTextureSkewed(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv,
     //
     // float2 E = float2(log2(S.x), log2(S.y));
     float2 E = log2(S);
-    float2 scaledFlooredE = exp2(floor(E));
+    float2 flooredE = floor(E);
+    float2 scaledFlooredE = exp2(flooredE);
 
     float2 uv00 = scaledFlooredE * uv0;                                         // U′₀ (Eq.3)
     float2 uv01 = float2(uv00.x, 2 * uv00.y);                                   // U′₁ (Eq.4)
@@ -276,6 +336,9 @@ float4 SampleMetaTextureSkewed(TEXTURE2D(_Tex), SAMPLER(sampler_Tex), float2 uv,
     float2 uv11 = float2(uv10.x, 2 * uv10.y);                                   // U′′₁ (Eq.4)
     float2 uv12 = float2(2 * uv10.x, uv10.y);                                   // U′′₂ (Eq.5)
     float2 uv13 = float2(2 * uv10.x, 2 * uv10.y);                               // U′′₃ (Eq.6)
+
+    // '3.5. Orienting texture to indicate contour'
+    Reorient(flooredE.x - flooredE.y, uv00, uv01, uv02, uv03, uv10, uv11, uv12, uv13);
 
     // Eq.7
     // B = { β(Eᵤ − ⌊Eᵤ⌋), β(Eᵥ − ⌊Eᵥ⌋) }

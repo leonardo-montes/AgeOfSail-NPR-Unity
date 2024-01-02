@@ -15,6 +15,7 @@ Material:
   - _COMPENSATE_DISTANCE
   - _COMPENSATE_SKEW
   - _RECEIVE_SHADOWS
+  - _REORIENT_NONE
   - _USE_SMOOTH_UV_GRADIENT
   m_InvalidKeywords:
   - _EDGEBREAKUP_ON
@@ -126,6 +127,7 @@ Material:
     - _Parallax: 0.02
     - _PremulAlpha: 0
     - _ReceiveShadows: 1
+    - _Reorient: 0
     - _Shadows: 0
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
