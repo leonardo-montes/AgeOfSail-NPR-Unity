@@ -5,6 +5,9 @@ using UnityEngine.Rendering.RendererUtils;
 
 namespace AoS.RenderPipeline
 {
+	/// <summary>
+	/// Scene geometry rendering pass for getting the lighting information.
+	/// </summary>
 	public class ShadowPass
 	{
 		private static readonly ProfilingSampler Sampler = new("Shadow Pass (Opaque Geometry)");
@@ -18,10 +21,14 @@ namespace AoS.RenderPipeline
 
 		private void Render(RenderGraphContext context)
 		{
+			// Set the render target and clear it
 			context.cmd.SetRenderTarget(m_colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_depthAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 			context.cmd.ClearRenderTarget(true, true, ClearColor);
 
+			// Render the renderer list
 			context.cmd.DrawRendererList(m_list);
+
+			// Execute the command buffer
 			context.renderContext.ExecuteCommandBuffer(context.cmd);
 			context.cmd.Clear();
 		}
@@ -30,6 +37,7 @@ namespace AoS.RenderPipeline
 		{
 			using RenderGraphBuilder builder = renderGraph.AddRenderPass(Sampler.name, out ShadowPass pass, Sampler);
 
+			// Create a renderer list from the scene geometry
 			RendererListHandle listHandle = renderGraph.CreateRendererList(
 				new RendererListDesc(ShaderTagIDs, cullingResults, camera)
 				{
@@ -37,7 +45,6 @@ namespace AoS.RenderPipeline
 					rendererConfiguration = PerObjectData.None,
 					renderQueueRange = RenderQueueRange.opaque
 				});
-
 			pass.m_list = builder.UseRendererList(listHandle);
 
 			pass.m_colorAttachment = builder.ReadWriteTexture(textures.colorAttachment);

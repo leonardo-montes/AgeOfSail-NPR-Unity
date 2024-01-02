@@ -2,18 +2,10 @@
 #define AOS_LIT_INPUT_INCLUDED
 
 TEXTURE2D(_BaseMap);
-TEXTURE2D(_MaskMap);
-TEXTURE2D(_NormalMap);
-TEXTURE2D(_EmissionMap);
 SAMPLER(sampler_BaseMap);
-
-TEXTURE2D(_DetailMap);
-TEXTURE2D(_DetailNormalMap);
-SAMPLER(sampler_DetailMap);
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _DetailMap_ST)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
 	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)

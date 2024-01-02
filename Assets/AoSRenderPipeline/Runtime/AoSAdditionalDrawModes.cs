@@ -9,6 +9,9 @@ namespace AoS.RenderPipeline
     {
         public const string Section = "AoS RP";
 
+        /// <summary>
+        /// Adds the additional draw mode options to the scene view.
+        /// </summary>
         static AdditionalDrawModes()
         {
             for (int i = 0; i < (int)AdditionalCameraModes._Count; ++i)

@@ -4,6 +4,11 @@ using UnityEngine.Rendering;
 
 namespace AoS.RenderPipeline
 {
+	/// <summary>
+	/// Handles shadows setup and rendering.
+	/// 
+	/// Based on 'https://bitbucket.org/catlikecoding-projects/custom-srp-project/src/master/'
+	/// </summary>
 	public class Shadows
 	{
 		private const int MaxCascades = 4;

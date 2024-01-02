@@ -4,28 +4,12 @@ using UnityEngine.Rendering;
 
 namespace AoSA.RenderPipeline
 {
+	/// <summary>
+	/// Image-processing pass generating soft and heavy blurred versions of the input textures (which are the result from previous 'Shadow pass').
+	/// </summary>
 	public class BlurPass
 	{
 		private static readonly ProfilingSampler Sampler = new("Blur Pass");
-
-		private static int[] TempRTsId = new int[6]
-		{
-			Shader.PropertyToID("_TempRT0"),
-			Shader.PropertyToID("_TempRT1"),
-			Shader.PropertyToID("_TempRT2"),
-			Shader.PropertyToID("_TempRT3"),
-			Shader.PropertyToID("_TempRT4"),
-			Shader.PropertyToID("_TempRT5")
-		};
-		private static int[] SourceIds = new int[6]
-		{
-			Shader.PropertyToID("_Source0"),
-			Shader.PropertyToID("_Source1"),
-			Shader.PropertyToID("_Source2"),
-			Shader.PropertyToID("_Source3"),
-			Shader.PropertyToID("_Source4"),
-			Shader.PropertyToID("_Source5")
-		};
 
 		private TextureHandle[] m_shadowBuffers, m_softBlurBuffers, m_heavyBlurBuffers;
 		private Vector2Int m_bufferSize;
@@ -34,6 +18,9 @@ namespace AoSA.RenderPipeline
 
 		private void Render(RenderGraphContext context)
 		{
+			// Get and fill the buffers for rendering
+			// Note: this probably creates lots of GC everytime the amount of lights changes.
+			// TODO: remove GC allocation for production use.
 			int bufferCount = m_shadowBuffers.Length;
 			RenderTargetIdentifier[] tempRTs = new RenderTargetIdentifier[bufferCount];
 			RenderTargetIdentifier[] shadowRTs = new RenderTargetIdentifier[bufferCount];
@@ -41,75 +28,61 @@ namespace AoSA.RenderPipeline
 			RenderTargetIdentifier[] heavyBlurRTs = new RenderTargetIdentifier[bufferCount];
 			for (int i = 0; i < bufferCount; ++i)
 			{
-				context.cmd.GetTemporaryRT(TempRTsId[i], Mathf.CeilToInt(m_bufferSize.x / m_settings.softBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.softBlurDownsample), 0, FilterMode.Point, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+				context.cmd.GetTemporaryRT(RenderPipelineHelper.TempRTsId[i], Mathf.CeilToInt(m_bufferSize.x / m_settings.softBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.softBlurDownsample), 0, FilterMode.Point, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
 			
-				tempRTs[i] = new RenderTargetIdentifier(TempRTsId[i]);
+				tempRTs[i] = new RenderTargetIdentifier(RenderPipelineHelper.TempRTsId[i]);
 				shadowRTs[i] = new RenderTargetIdentifier(m_shadowBuffers[i]);
 				softBlurRTs[i] = new RenderTargetIdentifier(m_softBlurBuffers[i]);
 				heavyBlurRTs[i] = new RenderTargetIdentifier(m_heavyBlurBuffers[i]);
 			}
 
-			Draw(context.cmd, shadowRTs, softBlurRTs, AoSARenderPipeline.Pass.DownsampleArray);
-			Draw(context.cmd, softBlurRTs, tempRTs, AoSARenderPipeline.Pass.BlurHorizontalArray);
-			Draw(context.cmd, tempRTs, softBlurRTs, AoSARenderPipeline.Pass.BlurVerticalArray);
+			// Generate the soft blur buffers.
+			// - Downsample the input textures.
+			RenderPipelineHelper.Draw(context.cmd, shadowRTs, softBlurRTs, (int)Pass.DownsampleArray, m_settings.Material);
 			
+			// - 2 pass 1D Gaussian blur, ping-ponging with the temporary RTs.
+			RenderPipelineHelper.Draw(context.cmd, softBlurRTs, tempRTs, (int)Pass.BlurHorizontalArray, m_settings.Material);
+			RenderPipelineHelper.Draw(context.cmd, tempRTs, softBlurRTs, (int)Pass.BlurVerticalArray, m_settings.Material);
+			
+			// Release and get the RTs with the correct resolution for the heavy blur buffers.
 			for (int i = 0; i < bufferCount; ++i)
 			{
-				context.cmd.ReleaseTemporaryRT(TempRTsId[i]);
-				context.cmd.GetTemporaryRT(TempRTsId[i], Mathf.CeilToInt(m_bufferSize.x / m_settings.heavyBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.heavyBlurDownsample), 0, FilterMode.Bilinear, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+				context.cmd.ReleaseTemporaryRT(RenderPipelineHelper.TempRTsId[i]);
+				context.cmd.GetTemporaryRT(RenderPipelineHelper.TempRTsId[i], Mathf.CeilToInt(m_bufferSize.x / m_settings.heavyBlurDownsample), Mathf.CeilToInt(m_bufferSize.y / m_settings.heavyBlurDownsample), 0, FilterMode.Bilinear, m_useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
 			}
 			
-			Draw(context.cmd, softBlurRTs, heavyBlurRTs, AoSARenderPipeline.Pass.DownsampleArray);
-			Draw(context.cmd, heavyBlurRTs, tempRTs, AoSARenderPipeline.Pass.BlurHorizontalArray);
-			Draw(context.cmd, tempRTs, heavyBlurRTs, AoSARenderPipeline.Pass.BlurVerticalArray);
+			// Generate the heavy blur buffers.
+			// - Downsample the soft blur buffers.
+			RenderPipelineHelper.Draw(context.cmd, softBlurRTs, heavyBlurRTs, (int)Pass.DownsampleArray, m_settings.Material);
+			
+			// - 2 pass 1D Gaussian blur, ping-ponging with the temporary RTs.
+			RenderPipelineHelper.Draw(context.cmd, heavyBlurRTs, tempRTs, (int)Pass.BlurHorizontalArray, m_settings.Material);
+			RenderPipelineHelper.Draw(context.cmd, tempRTs, heavyBlurRTs, (int)Pass.BlurVerticalArray, m_settings.Material);
 
+			// Release the temporary RT
 			for (int i = 0; i < bufferCount; ++i)
-				context.cmd.ReleaseTemporaryRT(TempRTsId[i]);
+				context.cmd.ReleaseTemporaryRT(RenderPipelineHelper.TempRTsId[i]);
 
+			// Execute the command buffer
 			context.renderContext.ExecuteCommandBuffer(context.cmd);
 			context.cmd.Clear();
 		}
-
-		private void Draw(CommandBuffer buffer, RenderTargetIdentifier[] from, RenderTargetIdentifier[] to, AoSARenderPipeline.Pass pass)
-		{
-			for (int i = 0; i < from.Length; ++i)
-				buffer.SetGlobalTexture(SourceIds[i], from[i]);
-
-			buffer.SetRenderTarget(to, BuiltinRenderTextureType.None);
-			buffer.DrawProcedural(Matrix4x4.identity, m_settings.Material, (int)pass, MeshTopology.Triangles, 3);
-		}
-
 		public static void Record(RenderGraph renderGraph, Vector2Int bufferSize, bool useHDR, AoSARenderPipelineSettings settings, in CameraRendererTextures textures, RendererListHandle listHandle)
 		{
 			using RenderGraphBuilder builder = renderGraph.AddRenderPass(Sampler.name, out BlurPass pass, Sampler);
+			
 			pass.m_bufferSize = bufferSize;
 			pass.m_useHDR = useHDR;
 			pass.m_settings = settings;
-			pass.m_shadowBuffers = ReadTextures(builder, textures.shadowBuffers);
-			pass.m_softBlurBuffers = WriteTextures(builder, textures.softBlurBuffers);
-			pass.m_heavyBlurBuffers = WriteTextures(builder, textures.heavyBlurBuffers);
+			
+			pass.m_shadowBuffers = builder.ReadTextures(textures.shadowBuffers);
+			pass.m_softBlurBuffers = builder.WriteTextures(textures.softBlurBuffers);
+			pass.m_heavyBlurBuffers = builder.WriteTextures(textures.heavyBlurBuffers);
+
+			// Specify that we only render this pass if the previous 'shadow pass' has not been culled.
 			builder.DependsOn(listHandle);
+			
 			builder.SetRenderFunc<BlurPass>((pass, context) => pass.Render(context));
-		}
-
-		private static TextureHandle[] ReadTextures(RenderGraphBuilder builder, in TextureHandle[] textures)
-		{
-			TextureHandle[] newHandles = new TextureHandle[textures.Length];
-			for (int i = 0; i < textures.Length; ++i)
-			{
-				newHandles[i] = builder.ReadTexture(textures[i]);
-			}
-			return newHandles;
-		}
-
-		private static TextureHandle[] WriteTextures(RenderGraphBuilder builder, in TextureHandle[] textures)
-		{
-			TextureHandle[] newHandles = new TextureHandle[textures.Length];
-			for (int i = 0; i < textures.Length; ++i)
-			{
-				newHandles[i] = builder.WriteTexture(textures[i]);
-			}
-			return newHandles;
 		}
 	}
 }

@@ -5,9 +5,14 @@ using UnityEngine.Rendering;
 
 namespace AoSA.RenderPipeline
 {
-	public class DepthPass
+	/// <summary>
+	/// Scene geometry rendering pass for rendering a directional, point, and spot lights and their shadows.
+	/// 
+	/// Based on 'https://bitbucket.org/catlikecoding-projects/custom-srp-project/src/master/'
+	/// </summary>
+	public class LightingPass
 	{
-		private static readonly ProfilingSampler Sampler = new("Depth Pass");
+		private static readonly ProfilingSampler Sampler = new("Lighting Pass");
 
 		private const int MaxLightCount = 10; // 8 max RT, 3 already used, so 5 RT * 2 channels = 10
 		private const int MaxDirLightCount = 4;
@@ -42,6 +47,10 @@ namespace AoSA.RenderPipeline
 		private int m_otherLightCount;
 		private int m_totalLightCount;
 
+		/// <summary>
+		/// Setup the lights and their shadows before rendering.
+		/// </summary>
+		/// <returns>Returns the total count of lights.</returns>
 		public int Setup(CullingResults cullingResults, ShadowSettings shadowSettings, int renderingLayerMask)
 		{
 			m_cullingResults = cullingResults;
@@ -49,6 +58,10 @@ namespace AoSA.RenderPipeline
 			return SetupLight(renderingLayerMask);
 		}
 
+		/// <summary>
+		/// Setup each light properties for rendering.
+		/// </summary>
+		/// <returns>Returns the total count of lights.</returns>
 		private int SetupLight(int renderingLayerMask)
 		{
 			NativeArray<VisibleLight> visibleLights = m_cullingResults.visibleLights;
@@ -82,6 +95,9 @@ namespace AoSA.RenderPipeline
 			return m_totalLightCount;
 		}
 
+		/// <summary>
+		/// Set each lights properties and render their shadows
+		/// </summary>
 		private void Render(RenderGraphContext context)
 		{
 			CommandBuffer buffer = context.cmd;
@@ -152,6 +168,10 @@ namespace AoSA.RenderPipeline
 			OtherLightShadowData[index] = m_shadows.ReserveOtherShadows(light, visibleIndex);
 		}
 
+		/// <summary>
+		/// Specify if a light is directional or not in the alpha component of the a light for shader use.
+		/// </summary>
+		/// <returns>Returns the light color with alpha being 1 if the light is directional or 0 if it's not.</returns>
 		private Color GetLightColor(VisibleLight visibleLight)
 		{
 			Color color = visibleLight.finalColor;
@@ -162,11 +182,17 @@ namespace AoSA.RenderPipeline
 		public static ShadowTextures Record(RenderGraph renderGraph, CullingResults cullingResults, Camera camera, AoSARenderPipelineSettings settings,
 			int renderingLayerMask, out int totalLightCount, out Vector4[] lightColors)
 		{
-			using RenderGraphBuilder builder = renderGraph.AddRenderPass(Sampler.name, out DepthPass pass, Sampler);
+			using RenderGraphBuilder builder = renderGraph.AddRenderPass(Sampler.name, out LightingPass pass, Sampler);
+
+			// Setup
 			totalLightCount = pass.Setup(cullingResults, settings.shadows, renderingLayerMask);
-			lightColors = LightColors;
-			builder.SetRenderFunc<DepthPass>((pass, context) => pass.Render(context));
+
+			builder.SetRenderFunc<LightingPass>((pass, context) => pass.Render(context));
+
+			// Force rendering this pass
 			builder.AllowPassCulling(false);
+
+			lightColors = LightColors;
 			return pass.m_shadows.GetRenderTextures(renderGraph, builder);
 		}
 	}

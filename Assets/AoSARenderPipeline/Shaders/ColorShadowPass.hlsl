@@ -65,7 +65,6 @@ Buffers ColorShadowPassFragment (Varyings input)
 	uint renderingLayerMask = asuint(unity_RenderingLayer.x);
 
 	float3 litColor = base.rgb;
-	float3 shadowedColor = GetBaseShadowed(config).rgb;
 
 	float breakupMap = GetBreakup(config);
 	breakupMap = clamp(breakupMap, 0.3, 0.6) * step(0.01, breakupMap);
@@ -80,7 +79,9 @@ Buffers ColorShadowPassFragment (Varyings input)
 	}
 
 	#if defined(_UNLIT)
-		shadowedColor = litColor;
+		float3 shadowedColor = litColor;
+	#else
+		float3 shadowedColor = GetBaseShadowed(config).rgb;
 	#endif
 
 	GetLighting(renderingLayerMask, normal, depth, position, dither, smoothness, viewDirection, shadows, speculars);

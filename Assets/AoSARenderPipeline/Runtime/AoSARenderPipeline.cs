@@ -5,11 +5,14 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
 namespace AoSA.RenderPipeline
-{
+{		
+	/// <summary>
+	/// Enum containing the different shader passes from '/Shaders/CameraRenderer.shader'.
+	/// </summary>
+	public enum Pass { Copy, CopyArray, DownsampleArray, BlurHorizontalArray, BlurVerticalArray, CompositingPass, FinalCompositingPass, DebugMultiple }
+
 	public partial class AoSARenderPipeline : UnityEngine.Rendering.RenderPipeline
 	{
-		public enum Pass { Copy, CopyArray, DownsampleArray, BlurHorizontalArray, BlurVerticalArray, CompositingPass, FinalCompositingPass, DebugMultiple }
-
 		private readonly CameraRenderer m_renderer;
 		private readonly AoSARenderPipelineSettings m_settings;
 

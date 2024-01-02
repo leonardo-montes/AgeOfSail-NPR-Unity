@@ -5,6 +5,9 @@ using UnityEngine.Rendering;
 
 namespace AoSA.RenderPipeline
 {
+	/// <summary>
+	/// Register all the different textures and setup the camera for rendering.
+	/// </summary>
 	public class SetupPass
 	{
 		private static readonly ProfilingSampler Sampler = new("Setup");
@@ -13,30 +16,19 @@ namespace AoSA.RenderPipeline
 		private Vector2Int m_attachmentSize;
 		private Camera m_camera;
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="context"></param>
 		private void Render(RenderGraphContext context)
 		{
+			// Setup the camera for rendering
 			context.renderContext.SetupCameraProperties(m_camera);
 			
+			// Set resolution for shaders
 			context.cmd.SetGlobalVector(AttachmentSizeID, new Vector4(1.0f / m_attachmentSize.x, 1.0f / m_attachmentSize.y, m_attachmentSize.x, m_attachmentSize.y));
 
+			// Execute the command buffer
 			context.renderContext.ExecuteCommandBuffer(context.cmd);
 			context.cmd.Clear();
 		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="renderGraph"></param>
-		/// <param name="useHDR"></param>
-		/// <param name="attachmentSize"></param>
-		/// <param name="camera"></param>
-		/// <param name="settings"></param>
-		/// <param name="totalLightCount"></param>
-		/// <returns></returns>
+		
 		public static CameraRendererTextures Record(RenderGraph renderGraph, bool useHDR, Vector2Int attachmentSize, Camera camera,
 			AoSARenderPipelineSettings settings, int totalLightCount)
 		{
@@ -122,9 +114,13 @@ namespace AoSA.RenderPipeline
 				heavyBlurBuffers[i] = renderGraph.CreateTexture(desc);
 			}
 
+			// Force rendering the pass
 			builder.AllowPassCulling(false);
+
+			// Render
 			builder.SetRenderFunc<SetupPass>((pass, context) => pass.Render(context));
 
+			// Keep track of the textures
 			return new CameraRendererTextures(litColorBuffer, shadowedColorBuffer, depthAttachment, warpColor, warpDepth, shadowBuffers,
 				heavyBlurBuffers, softBlurBuffers, bloomBuffers);
 		}

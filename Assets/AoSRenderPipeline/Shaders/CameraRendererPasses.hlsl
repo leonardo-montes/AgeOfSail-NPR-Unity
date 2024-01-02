@@ -135,7 +135,6 @@ float4 FinalShadowPassFragment (Varyings input) : SV_TARGET
 // ------------------------------------------------------------------------------------------------------------
 
 float _WarpWidth;
-float _WarpBloom;
 
 float4 FinalColorPassFragment (Varyings input) : SV_TARGET
 {
@@ -145,8 +144,12 @@ float4 FinalColorPassFragment (Varyings input) : SV_TARGET
 	// Sample color
 	float4 color = GetSource(_Source0, input.screenUV + warp);
 
-	// Bloom
-	float4 finalShadow = GetSource(_Source2, input.screenUV + warp * _WarpBloom);
+	// Add Bloom (opt: warp it using the Warp pass data)
+	#if defined(_WARP_BLOOM)
+	float4 finalShadow = GetSource(_Source2, input.screenUV + warp);
+	#else
+	float4 finalShadow = GetSource(_Source2, input.screenUV);
+	#endif
 	color += finalShadow.g;
 
 	return color;

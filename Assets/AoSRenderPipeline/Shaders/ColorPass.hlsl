@@ -59,12 +59,14 @@ float4 ShadowPassFragment (Varyings input) : SV_TARGET
 	UNITY_SETUP_INSTANCE_ID(input);
 	InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
 	ClipLOD(config.fragment, unity_LODFade.x);
-		
+	
+	// Get base texture and clip
 	float4 base = GetBase(config);
 	#if defined(_CLIPPING)
 		clip(base.a - GetCutoff(config));
 	#endif
 
+	// Apply lighting if needed
 	#if defined(_UNLIT)
 		float3 color = base.rgb;
 	#else

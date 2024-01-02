@@ -39,3 +39,6 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 - [ ] Replace test textures with ones resembling the paper's textures.
 
 ![Screenshot of colored lights in Unity.](/screenshotColoredLights.jpg)
+
+![Scheme of the AoSA rendering pipeline.](/AoSA%20RP%20scheme.png)
+Blue indicates a rendering pass, and yellow an image-processing pass.

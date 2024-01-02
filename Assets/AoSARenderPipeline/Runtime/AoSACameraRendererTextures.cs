@@ -2,6 +2,9 @@
 
 namespace AoSA.RenderPipeline
 {
+	/// <summary>
+	/// Struct containing all textures used for rendering.
+	/// </summary>
 	public readonly ref struct CameraRendererTextures
 	{
 		public readonly TextureHandle litColorBuffer, shadowedColorBuffer, depthAttachment,  warpColor, warpDepth;

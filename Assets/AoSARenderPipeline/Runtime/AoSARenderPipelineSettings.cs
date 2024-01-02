@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace AoSA.RenderPipeline
 {
+    /// <summary>
+    /// Class containing all the settings for the pipeline.
+    /// </summary>
     [System.Serializable]
     public class AoSARenderPipelineSettings
     {

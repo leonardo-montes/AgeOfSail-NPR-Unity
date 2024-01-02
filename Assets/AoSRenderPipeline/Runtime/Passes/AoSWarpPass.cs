@@ -5,6 +5,9 @@ using UnityEngine.Rendering.RendererUtils;
 
 namespace AoS.RenderPipeline
 {
+	/// <summary>
+	/// Scene geometry rendering pass that fills the warp buffer.
+	/// </summary>
 	public class WarpPass
 	{
 		private static readonly ProfilingSampler Sampler = new("Warp Pass (Opaque Geometry)");
@@ -25,9 +28,11 @@ namespace AoS.RenderPipeline
 
 		private void Render(RenderGraphContext context)
 		{
+			// Set and clear the render target
 			context.cmd.SetRenderTarget(m_warpColor, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_warpDepth, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 			context.cmd.ClearRenderTarget(true, true, ClearColor);
 
+			// Set shader properties
 			float t = (float)(Time.realtimeSinceStartupAsDouble % 3600.0);
 			Vector4 lineBoilTime = new Vector4(t,							// x = realtime
 											Mathf.Floor(t * 24) / 24,	// y = 24 fps
@@ -40,7 +45,10 @@ namespace AoS.RenderPipeline
 			context.cmd.SetGlobalFloat(WarpGlobalDistanceFadeId, m_settings.warpGlobalDistanceFade);
 			context.cmd.SetGlobalFloat(WarpWidthId, m_settings.warpWidth);
 
+			// Render the renderer list
 			context.cmd.DrawRendererList(m_list);
+
+			// Execute the command buffer
 			context.renderContext.ExecuteCommandBuffer(context.cmd);
 			context.cmd.Clear();
 		}
@@ -49,6 +57,7 @@ namespace AoS.RenderPipeline
 		{
 			using RenderGraphBuilder builder = renderGraph.AddRenderPass(Sampler.name, out WarpPass pass, Sampler);
 
+			// Create a renderer list from the scene opaque geometry.
 			pass.m_list = builder.UseRendererList(renderGraph.CreateRendererList(
 				new RendererListDesc(ShaderTagIDs, cullingResults, camera)
 				{
@@ -59,6 +68,7 @@ namespace AoS.RenderPipeline
 
 			pass.m_warpColor = builder.ReadWriteTexture(textures.warpColor);
 			pass.m_warpDepth = builder.ReadWriteTexture(textures.warpDepth);
+
 			pass.m_settings = settings;
 
 			builder.SetRenderFunc<WarpPass>((pass, context) => pass.Render(context));

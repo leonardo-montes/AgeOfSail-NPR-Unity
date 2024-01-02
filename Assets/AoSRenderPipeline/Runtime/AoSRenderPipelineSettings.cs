@@ -1,16 +1,17 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace AoS.RenderPipeline
 {
-    [System.Serializable]
+    /// <summary>
+    /// Class containing all the settings for the pipeline.
+    /// </summary>
+    [Serializable]
     public class AoSRenderPipelineSettings
     {
         public bool useSRPBatcher = true;
         public ShadowSettings shadows;
-        public Shader shader;
+        public Shader imageProcessingShader;
 
         [Header("Warp pass settings")]
         public Texture2D warpTexture;
@@ -31,13 +32,14 @@ namespace AoS.RenderPipeline
         [Header("Final color pass settings")]
         public bool warpBloom = false;
 
+        // Material used for rendering image-processing shader passes.
         [NonSerialized] private Material m_material;
         public Material Material
         {
             get
             {
-                if (m_material == null && shader != null)
-                    m_material = new(shader) { hideFlags = HideFlags.HideAndDontSave };
+                if (m_material == null && imageProcessingShader != null)
+                    m_material = new(imageProcessingShader) { hideFlags = HideFlags.HideAndDontSave };
                 return m_material;
             }
         }

@@ -5,10 +5,13 @@ using UnityEngine.Rendering;
 
 namespace AoS.RenderPipeline
 {
+	/// <summary>
+	/// Enum containing the different shader passes from '/Shaders/CameraRenderer.shader'.
+	/// </summary>
+	public enum Pass { Copy, Downsample, BlurHorizontal, BlurVertical, FinalShadowPass, FinalColorPass }
+
 	public partial class AoSRenderPipeline : UnityEngine.Rendering.RenderPipeline
 	{
-		public enum Pass { Copy, Downsample, BlurHorizontal, BlurVertical, FinalShadowPass, FinalColorPass }
-
 		private readonly CameraRenderer m_renderer;
 		private readonly AoSRenderPipelineSettings m_settings;
 

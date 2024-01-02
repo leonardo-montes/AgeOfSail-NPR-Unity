@@ -1,6 +1,9 @@
 using UnityEngine;
 
-public class AoSACameraSettings : MonoBehaviour
+/// <summary>
+/// Per camera settings like overlay filter and saturation.
+/// </summary>
+public class CameraSettings : MonoBehaviour
 {
     [SerializeField] private Color m_overlay = GetDefaultOverlay();
     [SerializeField] private float m_saturation = GetDefaultSaturation();

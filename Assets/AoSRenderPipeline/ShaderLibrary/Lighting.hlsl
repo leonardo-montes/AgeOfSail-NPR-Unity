@@ -4,11 +4,11 @@
 float IncomingLight (float3 normal, Light light)
 {
 	float ndotl = saturate(dot(normal, light.direction) * 0.5 + 0.5);
-	#if defined(_USE_SHADOWS)
+#if defined(_USE_SHADOWS)
 	return ndotl * step(0.5, light.attenuation);
-	#else
+#else
 	return ndotl;
-	#endif
+#endif
 }
 
 float SpecularHighlight (float3 viewDirection, float3 normal, float smoothness, Light light)

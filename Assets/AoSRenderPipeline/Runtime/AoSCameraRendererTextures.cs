@@ -2,6 +2,9 @@
 
 namespace AoS.RenderPipeline
 {
+	/// <summary>
+	/// Struct containing all textures used for rendering.
+	/// </summary>
 	public readonly ref struct CameraRendererTextures
 	{
 		public readonly TextureHandle colorAttachment, depthAttachment, warpColor, warpDepth, heavyBlurBuffer, softBlurBuffer, finalShadowBuffer;

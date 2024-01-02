@@ -18,10 +18,6 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
 	#if defined(_AGE_OF_SAIL_RP_COLOR_SHADOW_PASS)
 		UNITY_DEFINE_INSTANCED_PROP(float4, _BreakupMap_ST)
-		UNITY_DEFINE_INSTANCED_PROP(float4, _BaseShadowedColor)
-		UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColorOverlay)
-		UNITY_DEFINE_INSTANCED_PROP(float, _BaseColorSaturation)
-		UNITY_DEFINE_INSTANCED_PROP(float4, _BaseShadowedMap_ST)
 	#endif
 	#if defined(_WARP_PASS)
 		UNITY_DEFINE_INSTANCED_PROP(float, _AnimatedLineBoilFramerate)
@@ -139,41 +135,6 @@ float GetSmoothness (InputConfig c)
 	{
 		float4 baseST = INPUT_PROP(_BreakupMap_ST);
 		return SAMPLE_TEXTURE2D(_BreakupMap, sampler_BreakupMap, c.baseUV * baseST.xy + baseST.zw).r;
-	}
-	
-	TEXTURE2D(_BaseShadowedMap);
-	SAMPLER(sampler_BaseShadowedMap);
-
-	float4 GetBaseShadowed (InputConfig c)
-	{
-		float4 baseMap = SAMPLE_TEXTURE2D(_BaseShadowedMap, sampler_BaseShadowedMap, c.baseUV);
-		if (c.flipbookBlending)
-		{
-			baseMap = lerp(baseMap, SAMPLE_TEXTURE2D(_BaseShadowedMap, sampler_BaseShadowedMap, c.flipbookUVB.xy), c.flipbookUVB.z);
-		}
-		if (c.nearFade)
-		{
-			float nearAttenuation = (c.fragment.depth - INPUT_PROP(_NearFadeDistance)) / INPUT_PROP(_NearFadeRange);
-			baseMap.a *= saturate(nearAttenuation);
-		}
-		if (c.softParticles)
-		{
-			float depthDelta = c.fragment.bufferDepth - c.fragment.depth;
-			float nearAttenuation = (depthDelta - INPUT_PROP(_SoftParticlesDistance)) / INPUT_PROP(_SoftParticlesRange);
-			baseMap.a *= saturate(nearAttenuation);
-		}
-		float4 baseColor = INPUT_PROP(_BaseShadowedColor);
-		return baseMap * baseColor * c.color;
-	}
-
-	float4 GetBaseColorOverlay()
-	{
-		return INPUT_PROP(_BaseColorOverlay);
-	}
-
-	float4 GetBaseColorSaturation()
-	{
-		return INPUT_PROP(_BaseColorSaturation);
 	}
 #endif
 

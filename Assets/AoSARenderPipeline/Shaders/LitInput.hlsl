@@ -2,18 +2,10 @@
 #define AOSA_LIT_INPUT_INCLUDED
 
 TEXTURE2D(_BaseMap);
-TEXTURE2D(_MaskMap);
-TEXTURE2D(_NormalMap);
-TEXTURE2D(_EmissionMap);
 SAMPLER(sampler_BaseMap);
-
-TEXTURE2D(_DetailMap);
-TEXTURE2D(_DetailNormalMap);
-SAMPLER(sampler_DetailMap);
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _DetailMap_ST)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
 	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
@@ -21,8 +13,6 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	#if defined(_AGE_OF_SAIL_RP_COLOR_SHADOW_PASS)
 		UNITY_DEFINE_INSTANCED_PROP(float4, _BreakupMap_ST)
 		UNITY_DEFINE_INSTANCED_PROP(float4, _BaseShadowedColor)
-		UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColorOverlay)
-		UNITY_DEFINE_INSTANCED_PROP(float, _BaseColorSaturation)
 	#endif
 	#if defined(_WARP_PASS)
 		UNITY_DEFINE_INSTANCED_PROP(float, _AnimatedLineBoilFramerate)
@@ -95,16 +85,6 @@ float GetSmoothness (InputConfig c)
 		float4 map = SAMPLE_TEXTURE2D(_BaseShadowedMap, sampler_BaseShadowedMap, c.baseUV);
 		float4 color = INPUT_PROP(_BaseShadowedColor);
 		return map * color;
-	}
-
-	float4 GetBaseColorOverlay()
-	{
-		return INPUT_PROP(_BaseColorOverlay);
-	}
-
-	float4 GetBaseColorSaturation()
-	{
-		return INPUT_PROP(_BaseColorSaturation);
 	}
 #endif
 
