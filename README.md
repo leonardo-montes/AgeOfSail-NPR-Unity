@@ -6,6 +6,9 @@ Using [Jasper Flick/Catlike Coding](https://catlikecoding.com/)'s [Custom SRP Pr
 
 ![Screenshot of the result in Unity.](/screenshot.jpg)
 
+**Disclaimer:**
+I want to emphasize that this project is an experiment and does not prioritize aesthetic appeal or extensive comments of the rendering pipeline code. If certain elements are unclear or if you encounter issues, please feel free to reach out for clarification. Additionally, be aware that the code may exhibit poor memory management and excessive garbage collection allocation, particularly in the AoS Alternative Render Pipeline.
+
 **Implementation _(based on the Paper)_:**
 - 3. MetaTexture
     - [x] 3.1. Texture scales and blend coefficients
