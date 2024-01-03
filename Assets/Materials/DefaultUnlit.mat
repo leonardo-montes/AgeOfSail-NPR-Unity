@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DefaultSphere
-  m_Shader: {fileID: 4800000, guid: d2c448af154f94dda8a9c42d2b0171f0, type: 3}
+  m_Name: DefaultUnlit
+  m_Shader: {fileID: 4800000, guid: af18b6689474e0c4f98b5aae2518163d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -18,8 +18,10 @@ Material:
   - _USE_SMOOTH_UV_GRADIENT
   m_InvalidKeywords:
   - _EDGEBREAKUP_ON
+  - _REORIENT_NONE
   - _SHADOWS_ON
   - _USE_SKEWED_META_TEXTURE
+  - _WARP_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -39,8 +41,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BreakupMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
+        m_Texture: {fileID: 2800000, guid: f95d162f777cae64aa9214ba2071d740, type: 3}
+        m_Scale: {x: 1, y: 4}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
@@ -116,7 +118,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _MaskMapToggle: 0
-    - _Metallic: 0
+    - _Metallic: 1
     - _Mode: 0
     - _NormalMapToggle: 0
     - _NormalScale: 1
@@ -125,6 +127,7 @@ Material:
     - _Parallax: 0.02
     - _PremulAlpha: 0
     - _ReceiveShadows: 1
+    - _Reorient: 0
     - _Shadows: 0
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
@@ -134,13 +137,17 @@ Material:
     - _UseAnimatedLineBoil: 0
     - _UseSkewedMetaTexture: 1
     - _UseSmoothUVGradient: 1
+    - _Warp: 1
+    - _WarpDistanceFadeMultiplier: 1
+    - _WarpSkew: 4
+    - _WarpWidthMultiplier: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorOverlay: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     - _BaseShadowedColor: {r: 0.13608047, g: 0.1816713, b: 0.20754719, a: 0.9098039}
-    - _Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _Color: {r: 0.6, g: 0.46274507, b: 0.3764706, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Test: {r: 1, g: 1, b: 1, a: 1}
-    - _WorldSpaceUVGradient: {r: 3, g: 3, b: 0, a: 0}
+    - _WorldSpaceUVGradient: {r: 1, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []

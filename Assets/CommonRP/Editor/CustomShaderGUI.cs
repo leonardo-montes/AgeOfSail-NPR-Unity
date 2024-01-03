@@ -19,7 +19,7 @@ public class CustomShaderGUI : ShaderGUI
 
 	MaterialProperty[] properties;
 
-	bool showPresets, showWarpPass, showBaseSettings, shadowSettings, transparencySettings;
+	bool showPresets, showWarpPass = true, showBaseSettings = true, shadowSettings = true, transparencySettings = true;
 
 	bool Clipping
 	{
@@ -110,6 +110,9 @@ public class CustomShaderGUI : ShaderGUI
 
 					prop0 = FindProperty("_BreakupMap", properties);
 					editor.TextureProperty(prop0, prop0.displayName);
+
+					prop0 = FindProperty("_Smoothness", properties);
+					editor.RangeProperty(prop0, "Specular highlight");
 				}
 				
 				bool isAoSA = RenderPipelineManager.currentPipeline.GetType() == typeof(AoSARenderPipeline);
@@ -120,25 +123,6 @@ public class CustomShaderGUI : ShaderGUI
 
 					prop0 = FindProperty("_BaseColorSaturation", properties);
 					editor.FloatProperty(prop0, prop0.displayName);
-				}
-
-				// Lit shader only
-				if (FindProperty("_MaskMapToggle", properties, false) != null)
-				{
-					DrawPropertyToggleKeyword("_MaskMapToggle", "_MASK_MAP");
-
-					enabled = GUI.enabled;
-					++EditorGUI.indentLevel;
-					GUI.enabled = enabled && FindProperty("_MaskMapToggle", properties).floatValue != 0.0f;
-					prop0 = FindProperty("_MaskMap", properties);
-					editor.TexturePropertySingleLine(new GUIContent(prop0.displayName), prop0);
-					GUI.enabled = enabled;
-					--EditorGUI.indentLevel;
-					
-					prop0 = FindProperty("_Smoothness", properties);
-					editor.RangeProperty(prop0, "Specular highlight");
-
-					GUI.enabled = enabled;
 				}
 				--EditorGUI.indentLevel;
 				EditorGUILayout.Space();
