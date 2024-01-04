@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public static class MeshInflateHelper
 {
@@ -147,7 +148,7 @@ public static class MeshInflateHelper
     /// <returns>Normalized vector.</returns>
     private static Vector3 GetSurfaceNormal (Vector3 a, Vector3 b, Vector3 c)
     {
-        return Vector3.Cross(b - a, c - a).normalized;
+        return math.normalize(math.cross(b - a, c - a));
     }
 
     /// <summary>
@@ -156,8 +157,8 @@ public static class MeshInflateHelper
     /// </summary>
     private static float Angle (Vector3 a, Vector3 b)
     {
-        // This is the same as 'math.acos(Vector3.Dot(v1, v2))', but more accurate
-        if (Vector3.Dot(a, b) >= 0.0f)
+        // This is the same as 'math.acos(math.dot(v1, v2))', but more accurate
+        if (math.dot(a, b) >= 0.0f)
             return 2.0f * math.asin((b - a).magnitude / 2.0f);
         
         return math.PI - 2.0f * math.asin((-b - a).magnitude / 2.0f);
@@ -203,13 +204,38 @@ public static class MeshInflateHelper
     /// <param name="triangles"></param>
     /// <param name="referenceVertexIdMap"></param>
     /// <returns></returns>
-    public static bool GetEdges(List<Vector3> vertices, List<int> triangles, ref Dictionary<int, int> referenceVertexIdMap, ref List<Edge> edges, Transform debugTransform = null)
+    public static bool GetEdges(List<Vector3> vertices, List<int> triangles, ref Dictionary<int, int> referenceVertexIdMap, ref List<Edge> edges,
+                                Transform debugTransform = null, string editorTitle = null)
     {
+#if UNITY_EDITOR
+        // Editor
+        if (editorTitle != null)
+            UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Get edges", "Startup...", 0.0f);
+#endif
+
         // Cache
         Vector3 v0, v1;
         int i0, i1, i2;
         int vertexCount = vertices.Count;
         int triCount = triangles.Count;
+
+        // Check if the base data is weird
+        for (int i = 0; i < triCount; i += 3)
+        {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Get edges", "Verifying base data...", (float)i / triCount);
+#endif
+
+            i0 = triangles[i];
+            i1 = triangles[i + 1];
+            i2 = triangles[i + 2];
+            if (i0 == i1 || i0 == i2 || i1 == i2)
+            {
+                Debug.LogError(string.Format("GetEdges: Mesh is weird (some triangles have twice the same index, meaning they are just a line). Triangle indices are the following: {0}; {1}; {2}.", i0, i1, i2));
+                return false;
+            }
+        }
 
         // Reset
         referenceVertexIdMap.Clear();
@@ -218,6 +244,11 @@ public static class MeshInflateHelper
         // Get all unique vertices and fill normals
         for (int i = 0; i < vertexCount; ++i)
         {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Get edges", "Aggregating vertices sharing the same position...", (float)i / vertexCount);
+#endif
+
             v0 = vertices[i];
             if (referenceVertexIdMap.TryAdd(i, i))
             {
@@ -227,7 +258,7 @@ public static class MeshInflateHelper
                         continue;
 
                     v1 = vertices[j];
-                    if ((v0 - v1).sqrMagnitude <= math.EPSILON)
+                    if ((v0 - v1).magnitude <= math.EPSILON)
                     {
                         referenceVertexIdMap.TryAdd(j, i);
                     }
@@ -238,11 +269,24 @@ public static class MeshInflateHelper
         // Get all edges
         for (int i = 0; i < triCount; i += 3)
         {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Get edges", "Get all edges...", (float)i / triCount);
+#endif
+
+            // Get unique vertices index
             if (!referenceVertexIdMap.TryGetValue(triangles[i], out i0) ||
                 !referenceVertexIdMap.TryGetValue(triangles[i + 1], out i1) ||
                 !referenceVertexIdMap.TryGetValue(triangles[i + 2], out i2))
             {
-                Debug.LogError("GenerateInflationNormals: Vertex not found in Merged Vertices Dictionnary."); 
+                Debug.LogError("GetEdges: Vertex not found in Merged Vertices Dictionnary."); 
+                return false;
+            }
+
+            // Check if there was an error when getting the indices
+            if (i0 == i1 || i0 == i2 || i1 == i2)
+            {
+                Debug.LogError("GetEdges: Unique vertices error (two indices are the same, it's an edge not a triangle).");
                 return false;
             }
 
@@ -255,10 +299,24 @@ public static class MeshInflateHelper
                 !edges.AddToList(i1, i2, i0) ||
                 !edges.AddToList(i2, i0, i1))
             {
-                Debug.LogError("GenerateInflationNormals: Mesh edges are invalid (more than two faces for one edge, mesh is non-manifold).");
+                Debug.LogError("GetEdges: Mesh edges are invalid (more than two faces for one edge, mesh is non-manifold).");
+                if (debugTransform != null)
+                {
+                    Debug.DrawLine(debugTransform.TransformPoint(vertices[i0]), debugTransform.TransformPoint(vertices[i1]), Color.red, 15.0f);
+                    Debug.DrawLine(debugTransform.TransformPoint(vertices[i0]), debugTransform.TransformPoint(vertices[i2]), Color.red, 15.0f);
+                    Debug.DrawLine(debugTransform.TransformPoint(vertices[i1]), debugTransform.TransformPoint(vertices[i2]), Color.red, 15.0f);
+                }
                 return false;
             }
         }
+
+#if UNITY_EDITOR
+        // Editor
+        if (editorTitle != null)
+            UnityEditor.EditorUtility.ClearProgressBar();
+#endif
+
+        // Done
         return true;
     }
 
@@ -272,8 +330,16 @@ public static class MeshInflateHelper
     /// <param name="thickness"></param>
     /// <param name="inflationNormals"></param>
     /// <returns></returns>
-    public static void GenerateInflationNormals(List<Vector3> vertices, List<int> triangles, List<Edge> edges, Dictionary<int, int> referenceVertexIdMap, ref List<Vector3> inflationNormals, float thickness = 1.0f, Transform debugTransform = null)
+    public static void GenerateInflationNormals(List<Vector3> vertices, List<int> triangles, List<Edge> edges, Dictionary<int, int> referenceVertexIdMap,
+                                                ref List<Vector3> inflationNormals, float thickness = 1.0f, Transform debugTransform = null,
+                                                string editorTitle = null)
     {
+#if UNITY_EDITOR
+        // Editor
+        if (editorTitle != null)
+            UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Generate inflated normals", "Startup...", 0.0f);
+#endif
+
         // Cache
         Vector3 edgeNormal, f0;
         Vector3? f1;
@@ -295,6 +361,11 @@ public static class MeshInflateHelper
         // Compute normals for all edges
         for (int i = 0; i < edgeCount; ++i)
         {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Generate inflated normals", "Computing normals for all edges...", (float)i / edgeCount);
+#endif
+
             edge = edges[i];
             edgeNormal = Vector3.zero;
             
@@ -330,10 +401,15 @@ public static class MeshInflateHelper
             inflationNormals[edge.ie1] += edgeNormal;
         }
         
-        // Check for specific cases and apply thickness
+        // Check for specific cases
         //int[] values = new int[4];
         for (int i = 0; i < vertexCount; ++i)
         {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Generate inflated normals", "Checking specific cases (totally flat surfaces)...", (float)i / vertexCount);
+#endif
+
             // In case the elements are totally flat, use base normal
             if (inflationNormals[i].sqrMagnitude <= math.EPSILON)
             {
@@ -358,21 +434,53 @@ public static class MeshInflateHelper
         // Copy to all inflated normals from reference inflated normals
         for (int i = 0; i < vertexCount; ++i)
         {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Generate inflated normals", "Copying extrusion normals to all vertices...", (float)i / vertexCount);
+#endif
+
             if (referenceVertexIdMap.TryGetValue(i, out i0) && i != i0)
                 inflationNormals[i] = inflationNormals[i0];
         }
         
         // Apply thickness
         for (int i = 0; i < vertexCount; ++i)
+        {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Generate inflated normals", "Applying thickness...", (float)i / vertexCount);
+                
+            if (debugTransform != null)
+            {
+                Vector3 pos = debugTransform.TransformPoint(vertices[i]);
+                Debug.DrawLine(pos, pos + debugTransform.TransformDirection(inflationNormals[i]) * 0.1f, Color.red, 10.0f);
+            }
+#endif
+
             inflationNormals[i] *= thickness;
+
+        }
+
+#if UNITY_EDITOR
+        // Editor
+        if (editorTitle != null)
+            UnityEditor.EditorUtility.ClearProgressBar();
+#endif
     }
 
     /// <summary>
     /// Generate a closed mesh from an open mesh.
     /// </summary>
     public static MeshType TryGenerateClosedMeshFromOpenMesh (ref List<Vector3> vertices, ref List<Vector2> uv0, ref List<int> triangles, List<Edge> edges,
-                                                              Dictionary<int, int> referenceVertexIdMap, float thickness = -0.001f, Transform debugTransform = null)
+                                                              Dictionary<int, int> referenceVertexIdMap, float thickness = -0.001f, Transform debugTransform = null,
+                                                              string editorTitle = null)
     {
+#if UNITY_EDITOR
+        // Editor
+        if (editorTitle != null)
+            UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Generating closed mesh", "Startup...", 0.0f);
+#endif
+
         // Cache
         Edge edge;
         int i, id;
@@ -384,21 +492,56 @@ public static class MeshInflateHelper
         List<int> maskedEdgesIdClosedSet = new List<int>();
         for (i = 0; i < edgeCount; ++i)
         {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Generating closed mesh", "Getting masked vertices...", (float)i / edgeCount);
+#endif
+
             if (edges[i].if1 == null)
             {
                 maskedStartEdgesId.Add(i);
                 maskedEdgesIdOpenSet.Add(i);
+
+#if UNITY_EDITOR
+                if (debugTransform != null)
+                {
+                    //Debug.DrawLine(debugTransform.TransformPoint(vertices[edges[i].ie0]), debugTransform.TransformPoint(vertices[edges[i].ie1]), Color.red, 10.0f);
+                }
+#endif
             }
         }
 
         // Early-out if there is no open part
         int maskedStartEdgesIdCount = maskedStartEdgesId.Count;
         if (maskedStartEdgesIdCount <= 0)
+        {
+#if UNITY_EDITOR
+            // Editor
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.ClearProgressBar();
+#endif
+
             return MeshType.Closed;
+        }
 
         // Expand the mask
+#if UNITY_EDITOR
+        int processedEdges = 0;
+#endif
         while (maskedEdgesIdOpenSet.Count > 0)
         {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+            {
+                ++processedEdges;
+                if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(editorTitle + " - Generating closed mesh", "Expanding the mask to nearby vertices... " + (((float)processedEdges / edgeCount) * 100.0f).ToString("f0") + "%", (float)processedEdges / edgeCount))
+                {
+                    Debug.LogError("TryGenerateClosedMeshFromOpenMesh: Cancelled by user.");
+                    break;
+                }
+            }
+#endif
+
             // Get the first element
             id = maskedEdgesIdOpenSet[0];
             edge = edges[id];
@@ -406,26 +549,48 @@ public static class MeshInflateHelper
             // Remove the element from the open set and add it to the closed set
             maskedEdgesIdClosedSet.Add(id);
             maskedEdgesIdOpenSet.RemoveAt(0);
+            
+#if UNITY_EDITOR
+            if (debugTransform != null)
+            {
+                //Debug.DrawLine(debugTransform.TransformPoint(vertices[edge.ie0]), debugTransform.TransformPoint(vertices[edge.ie1]), Color.red, 10.0f);
+                
+                //Debug.DrawLine(debugTransform.TransformPoint(vertices[edge.ie0]), debugTransform.TransformPoint(vertices[edge.ie0]) + Vector3.up * 0.05f, Color.green, 10.0f);
+                //Debug.DrawLine(debugTransform.TransformPoint(vertices[edge.ie1]), debugTransform.TransformPoint(vertices[edge.ie1]) + Vector3.up * 0.05f, Color.green, 10.0f);
+            }
+#endif
 
             // Find all neighbors
             for (i = 0; i < edgeCount; ++i)
             {
-                // Skip if edge is same, closed, or open edges
-                if (i == id || maskedEdgesIdClosedSet.Contains(i) || maskedEdgesIdOpenSet.Contains(i))
+                // Skip if edge is same
+                if (i == id)
                     continue;
 
                 // Check if neighbor 
                 if (edge.ie0 == edges[i].ie0 || edge.ie1 == edges[i].ie0 || edge.ie0 == edges[i].ie1 || edge.ie1 == edges[i].ie1)
+                {
+                    // Skip if edge closed or open edges
+                    if (maskedEdgesIdClosedSet.Contains(i) || maskedEdgesIdOpenSet.Contains(i))
+                        continue;
+
                     maskedEdgesIdOpenSet.Add(i);
+                }
             }
         }
 
         // Get proper extrusion normals
         List<Vector3> extrusionNormals = new List<Vector3>();
-        GenerateInflationNormals(vertices, triangles, edges, referenceVertexIdMap, ref extrusionNormals, thickness);
+        GenerateInflationNormals(vertices, triangles, edges, referenceVertexIdMap, ref extrusionNormals, thickness, debugTransform, editorTitle);
 
         // Extrude edges
-        MaskedExtrude(ref vertices, ref uv0, ref triangles, edges, referenceVertexIdMap, maskedStartEdgesId, maskedEdgesIdClosedSet, extrusionNormals, thickness);
+        MaskedExtrude(ref vertices, ref uv0, ref triangles, edges, referenceVertexIdMap, maskedStartEdgesId, maskedEdgesIdClosedSet, extrusionNormals, thickness, editorTitle);
+
+#if UNITY_EDITOR
+        // Editor
+        if (editorTitle != null)
+            UnityEditor.EditorUtility.ClearProgressBar();
+#endif
 
         // Set new
         return maskedEdgesIdClosedSet.Count == edges.Count ? MeshType.FullyOpen : MeshType.SemiOpen;
@@ -445,8 +610,14 @@ public static class MeshInflateHelper
     /// <param name="thickness"></param>
     private static void MaskedExtrude (ref List<Vector3> vertices, ref List<Vector2> uv0, ref List<int> triangles, List<Edge> edges,
                                        Dictionary<int, int> referenceVertexIdMap, List<int> maskedStartEdgesId, List<int> maskedEdgesIdClosedSet,
-                                       List<Vector3> extrusionNormals, float thickness)
+                                       List<Vector3> extrusionNormals, float thickness, string editorTitle = null)
     {
+#if UNITY_EDITOR
+        // Editor
+        if (editorTitle != null)
+            UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Extrude vertices", "Startup...", 0.0f);
+#endif
+
         // Cache
         Edge edge;
         int i, j, id, i0, i1, i2, it0, it1, it2;
@@ -461,6 +632,11 @@ public static class MeshInflateHelper
         int newVertexCount = vertexCount;
         for (i = 0; i < vertexCount; ++i)
         {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Extrude vertices", "Creating new vertices from masked vertices...", (float)i / vertexCount);
+#endif
+
             // Check if is in masked area
             referenceVertexIdMap.TryGetValue(i, out id);
             for (j = 0; j < maskedEdgesIdClosedSetCount; ++j)
@@ -484,6 +660,11 @@ public static class MeshInflateHelper
         // Loop through all triangles and add if it is a masked vertex, also bridge the gap when encountering an edge
         for (i = 0; i < triCount; i += 3)
         {
+#if UNITY_EDITOR
+            if (editorTitle != null)
+                UnityEditor.EditorUtility.DisplayProgressBar(editorTitle + " - Extrude vertices", "Bridging surfaces...", (float)i / triCount);
+#endif
+
             // Cache
             it0 = triangles[i];
             it1 = triangles[i + 1];
@@ -502,6 +683,12 @@ public static class MeshInflateHelper
                 Bridge(ref vertices, ref uv0, ref triangles, referenceVertexIdMap, edges, maskedStartEdgesId, it0, it1, it2, i0, i1, i2, thickness);
             }
         }
+
+#if UNITY_EDITOR
+        // Editor
+        if (editorTitle != null)
+            UnityEditor.EditorUtility.ClearProgressBar();
+#endif
     }
 
     /// <summary>
